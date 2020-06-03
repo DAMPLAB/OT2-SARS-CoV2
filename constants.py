@@ -76,7 +76,8 @@ PROTEINASE_K = 'Proteinase K'
 MS2 = 'MS2 Phage Control'
 BEADS = 'Nucleic Acid Magnetic Beads'
 WASH_BUFFER = 'Wash Buffer'
-ETHANOL = 'Ethanol'
+ETHANOL1 = 'Ethanol'
+ETHANOL2 = 'Ethanol'
 ELUTION = 'Elution Solution'
 
 ASPIRATE_DEPTH_BOTTOM = 2.00 #2mm from bottle
@@ -88,6 +89,6 @@ VOL_250 = 250 #large rxn vol
 VOL_500 = 500
 VOL_BEAD = 275
 VOL_ELUTE = 50
-VOL_WASTE = 243
+VOL_WASTE = 485
 
 TEMP = 4

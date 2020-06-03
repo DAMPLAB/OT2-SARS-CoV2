@@ -9,6 +9,7 @@
   # 265 μL of Binding Solution with 10 μL of Total Nucleic Acid Magnetic Beads
 # Include 10% overage when making the Binding Bead Mix for use with multiple reactions.
 # 3. Mix well by inversion, then store at room temperature.
+import math
 import os
 import sys
 sys.path.append(os.getcwd())
@@ -104,8 +105,8 @@ def run(protocol: protocol_api.ProtocolContext):
                       dest=waste_reservior.columns())
     # Steps 2-7
     wash_beads(protocol, source=reagent_map[WASH_BUFFER], vol=VOL_500)
-    wash_beads(protocol, source=reagent_map[ETHANOL], vol=VOL_500)
-    wash_beads(protocol, source=reagent_map[ETHANOL], vol=VOL_250)
+    wash_beads(protocol, source=reagent_map[ETHANOL1], vol=VOL_500)
+    wash_beads(protocol, source=reagent_map[ETHANOL2], vol=VOL_250)
 
     # 8. Dry the beads by shaking the plate (uncovered) at 1,050 rpm for 2 minutes
     # Happens outside of OT2
@@ -141,82 +142,98 @@ def run(protocol: protocol_api.ProtocolContext):
 
 def make_reagent_map(reagent_plate, reagent_reservior):
     return {
-        PROTEINASE_K: [reagent_plate.columns()[0]], # 5uL per sample, 528uL in the well
-        MS2: [reagent_plate.columns()[1]], # 5uL per sample, 52uL in the well
-        ELUTION: [reagent_reservior.columns()[10]], # 50uL per sample, 5.28mL in the well
+        PROTEINASE_K: [ # 5uL per sample, 528uL in the well
+            {'VOL': 528, 'WELL': reagent_plate.columns()[0]}
+        ],
+        MS2: [ # 5uL per sample, 52uL in the well
+            {'VOL': 52, 'WELL': reagent_plate.columns()[1]}
+        ],
+        ELUTION: [ # 50uL per sample, 5.28mL in the well
+            {'VOL': 5280, 'WELL': reagent_reservior.columns()[10]}
+        ],
         BEADS: [ # 275uL per sample, 14.52mL in the well
-            reagent_reservior.columns()[0],
-            reagent_reservior.columns()[1]
+            {'VOL': 14520, 'WELL': reagent_reservior.columns()[0]},
+            {'VOL': 14520, 'WELL': reagent_reservior.columns()[1]}
         ],
         WASH_BUFFER: [ # 500uL per sample, 17.6mL in the well
-            reagent_reservior.columns()[2],
-            reagent_reservior.columns()[3],
-            reagent_reservior.columns()[4]
+            {'VOL': 17600, 'WELL': reagent_reservior.columns()[2]},
+            {'VOL': 17600, 'WELL': reagent_reservior.columns()[3]},
+            {'VOL': 17600, 'WELL': reagent_reservior.columns()[4]}
         ],
-        ETHANOL: [
-            reagent_reservior.columns()[5], # 500uL per sample, 17.6mL in the well
-            reagent_reservior.columns()[6], # 500uL per sample, 17.6mL in the well
-            reagent_reservior.columns()[7], # 500uL per sample, 17.6mL in the well
-            reagent_reservior.columns()[8], # 250uL per sample, 13.2mL in the well
-            reagent_reservior.columns()[9] # 250uL per sample, 13.2mL in the well
+        ETHANOL1: [
+            {'VOL': 17600, 'WELL': reagent_reservior.columns()[5]},
+            {'VOL': 17600, 'WELL': reagent_reservior.columns()[6]},
+            {'VOL': 17600, 'WELL': reagent_reservior.columns()[7]},
+        ],
+        ETHANOL2: [
+            {'VOL': 13200, 'WELL': reagent_reservior.columns()[8]},
+            {'VOL': 13200, 'WELL': reagent_reservior.columns()[9]}
         ]
-
     }
 
-def add_proteinase_k(num_cols=1, pipette=None, source=None, dest=None):
+# Custom transfer function for when the volume needed
+# exceeds the pipette's max volume. This function will
+# prioritize tip reuse by pipetting to the top of the
+# wells until the last dispensation
+def transfer(vol=0, pipette=None, source=[], dest=[],
+             mix_before_n=0, mix_after_n=0):
+    n = math.ceil(vol / pipette.max_volume)
+    vol_ar = [vol // n + (1 if x < vol % n else 0) for x in range(n)]
+
+    pipette.pick_up_tip()
+    for v in vol_ar[:-1]:
+        if mix_before_n > 0:
+            pipette.mix(repetitions=mix_before_n, volume=v)
+        # dispense to the top of the well so we can reuse the tips
+        pipette.aspirate(volume=v, location=source[0])
+        pipette.dispense(volume=v, location=dest[0].top)
+
+    # the final transfer
+    if mix_before_n > 0:
+        pipette.mix(repetitions=mix_before_n, volume=vol_ar[-1])
+    pipette.transfer(vol_ar[-1], source, dest[0],
+                     new_tip='never',
+                     blow_out=True)
+    if mix_after_n > 0:
+        pipette.mix(repetitions=mix_after_n, volume=vol_ar[-1])
+    pipette.drop_tip()
+
+def reagent_low(q_remain=0, q_transfer=0):
+    return True if q_remain < q_transfer else False
+
+def add_proteinase_k(num_cols=1, pipette=None, source=None, dest=[]):
     for c in range(num_cols):
-        #pipette.pick_up_tip()
-        pipette.transfer(VOL_5, source, dest[c],
-                         #new_tip='never',
+        pipette.transfer(VOL_5, source['WELL'], dest[c],
                          mix_before=(5, VOL_15),
                          blow_out=True)
 
-def add_beads(num_cols=1, pipette=None, source=None, dest=None):
+def add_beads(num_cols=1, pipette=None, source=[], dest=[]):
     s = 0
+    reagent_vol = source[s]['VOL']
     for c in range(num_cols):
-        # pipette.pick_up_tip()
-        # pipette.mix(repetitions=8, volume=VOL_250,
-        #             location=source[s].bottom(ASPIRATE_DEPTH_BOTTOM))
-        pipette.transfer(VOL_BEAD, source[s], dest[c],
-                         #new_tip='never',
-                         mix_before=(8, pipette.max_volume), # repeat 8x
-                         mix_after=(3, pipette.max_volume), # repeat 3x
-                         blow_out=True)
-        # pipette.mix(repetitions=3, volume=VOL_250,
-        #             location=dest[c].bottom(ASPIRATE_DEPTH_BOTTOM))
-        # pipette.blow_out()
-        # pipette.drop_tip()
-        if c == 5:
+        transfer(vol=VOL_BEAD, pipette=pipette,
+                 source=source[s]['WELL'], dest=dest[c],
+                 mix_before_n=8, mix_after_n=3)
+        reagent_vol -= VOL_BEAD
+        if reagent_low(reagent_vol, VOL_BEAD):
             s += 1
+            reagent_vol = source[s]['VOL']
 
-def add_ms2(num_cols=1, pipette=None, source=None, dest=None):
+def add_ms2(num_cols=1, pipette=None, source=None, dest=[]):
     for c in range(num_cols):
-        # pipette.pick_up_tip()
-        # pipette.mix(repetitions=5, volume=VOL_15,
-        #             location=source.bottom(ASPIRATE_DEPTH_BOTTOM))
-        pipette.transfer(VOL_5, source, dest[c],
-                         #new_tip='never',
+        pipette.transfer(VOL_5, source['WELL'], dest[c],
                          mix_before=(5, VOL_15), # repeat 5x
                          mix_after=(8, VOL_15), # repeat 8x
                          blow_out=True)
-        # pipette.mix(repetitions=8, volume=VOL_15,
-        #             location=source.bottom(ASPIRATE_DEPTH_BOTTOM))
-        # pipette.blow_out()
-        # pipette.drop_tip()
 
-def discard_supernant(num_cols=1, pipette=None, source=None, dest=None):
+def discard_supernant(num_cols=1, pipette=None, source=[], dest=[]):
     for c in range(num_cols):
-        pipette.pick_up_tip()
-        pipette.transfer(VOL_WASTE, source[c], dest[0][0].top,
-                         new_tip='never',
-                         blow_out=True)
-        pipette.transfer(VOL_WASTE, source[c], dest[0][0],
-                         new_tip='never')
-        pipette.drop_tip()
+        transfer(vol=VOL_WASTE, pipette=pipette,
+                 source=source[c], dest=dest[0])
 
 def wash_beads(protocol, source=None, vol=0):
-    mag_deck = protocol.loaded_modules[MAG_DECK['NAME']]
-    p200 = protocol.loaded_instrument[P200_MULTI['NAME']]
+    mag_deck = protocol.loaded_modules[MAG_DECK['SLOT']]
+    p200 = protocol.loaded_instruments[P200_MULTI['POSITION']]
     reaction_plate = protocol.loaded_labwares[MAG_DECK['SLOT']]
     waste_reservior = protocol.loaded_labwares[WASTE_RESERVOIR['SLOT']]
     num_cols = len(reaction_plate.columns())
@@ -224,7 +241,9 @@ def wash_beads(protocol, source=None, vol=0):
     # 2. Remove the plate from the magnetic stand
     mag_deck.disengage()
 
-    wash(vol=vol, pipette=p200, source=source, dest=reaction_plate.columns())
+    wash(num_cols=num_cols, pipette=p200,
+         source=source, dest=reaction_plate.columns(),
+         vol=vol)
 
     # 3. Reseal the plate, then shake at 1,050 rpm for 1 minute.
     # Step 3 happen outside of OT-2.
@@ -240,70 +259,28 @@ def wash_beads(protocol, source=None, vol=0):
                       source=reaction_plate.columns(),
                       dest=waste_reservior.columns())
 
-def wash(vol=0, pipette=None, source=None, dest=None):
-    if vol == VOL_500:
-        wash_500(num_cols=len(dest), pipette=pipette, source=source, dest=dest)
-    if vol == VOL_250:
-        wash_250(num_cols=len(dest), pipette=pipette, source=source, dest=dest)
-
-def wash_500(num_cols=1, pipette=None, source=None, dest=None):
+def wash(num_cols=0, pipette=None, source=None, dest=None, vol=0):
     s = 0
+    reagent_vol = source[s]['VOL']
     for c in range(num_cols):
-        pipette.pick_up_tip()
-        # pipette.mix(repetitions=3, volume=VOL_250,
-        #             location=source[s].bottom(ASPIRATE_DEPTH_BOTTOM))
-
-        # dispense to the top of the well so we can reuse the tips
-        pipette.transfer(VOL_250, source[s], dest[c][0].top,
-                         new_tip='never',
-                         mix_before=(3, pipette.max_volume),)
-
-        pipette.transfer(VOL_250, source[s], dest[c],
-                         new_tip='never',
-                         mix_after=(5, pipette.max_volume),
-                         blow_out=True)
-        # pipette.mix(repetitions=5, volume=VOL_250,
-        #             location=dest[c].bottom(ASPIRATE_DEPTH_BOTTOM))
-        # pipette.blow_out()
-        pipette.drop_tip()
-        if c == 3 or c == 7:
+        transfer(vol=vol, pipette=pipette,
+                 source=source[s]['WELL'], dest=dest[c],
+                 mix_before_n=3, mix_after_n=5)
+        reagent_vol -= vol
+        if reagent_low(reagent_vol, vol):
             s += 1
+            reagent_vol = source[s]['VOL']
 
-def wash_250(num_cols=1, pipette=None, source=None, dest=None):
-    s = 3
+def elute(num_cols=1, pipette=None, source=None, dest=[]):
     for c in range(num_cols):
         pipette.pick_up_tip()
-        # pipette.mix(repetitions=3, volume=VOL_250,
-        #             location=source[s].bottom(ASPIRATE_DEPTH_BOTTOM))
-        pipette.transfer(VOL_250, source[s], dest[c],
-                         mix_before=(3, pipette.max_volume), # repeat 3x
-                         mix_after=(5, pipette.max_volume), # repeat 5x
-                         blow_out=True)
-        # pipette.mix(repetitions=5, volume=VOL_250,
-        #             location=dest[c].bottom(ASPIRATE_DEPTH_BOTTOM))
-        # pipette.blow_out()
-        # pipette.drop_tip()
-        if c == 5:
-            s += 1
-
-def elute(num_cols=1, pipette=None, source=None, dest=None):
-    for c in range(num_cols):
-        pipette.pick_up_tip()
-        # pipette.mix(repetitions=3, volume=VOL_250,
-        #             location=source.bottom(ASPIRATE_DEPTH_BOTTOM))
-        pipette.transfer(VOL_ELUTE, source, dest[c],
+        pipette.transfer(VOL_ELUTE, source['WELL'], dest[c],
                          mix_before=(3, pipette.max_volume), # repeat 3x
                          mix_after=(5, 35), # repeat 5x
                          blow_out=True)
-        # pipette.mix(repetitions=5, volume=35,
-        #             location=dest.bottom(ASPIRATE_DEPTH_BOTTOM))
-        # pipette.blow_out()
-        # pipette.drop_tip()
 
-def make_qPCR_plate(num_cols=1, pipette=None, source=None, dest=None):
+def make_qPCR_plate(num_cols=1, pipette=None, source=[], dest=[]):
     for c in range(num_cols):
         pipette.pick_up_tip()
         pipette.transfer(VOL_ELUTE, source[c], dest[c],
                          blow_out=True)
-        # pipette.blow_out()
-        # pipette.drop_tip()
