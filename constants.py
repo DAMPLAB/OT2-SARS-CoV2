@@ -2,11 +2,11 @@
 # Hardware
 TEMP_DECK = {
     'NAME': 'Temperature Module',
-    'SLOT': 1
+    'SLOT': 10
 }
 MAG_DECK = {
     'NAME': 'Magnetic Module',
-    'SLOT': 5
+    'SLOT': 7
 }
 
 # Labware
@@ -21,7 +21,7 @@ REACTION_PLATE = { #2.4mL per well, 96 wells
 }
 REAGENT_PLATE = {
     'NAME': 'biorad_96_wellplate_200ul_pcr',
-    'SLOT': 8,
+    'SLOT': 2,
     'LABEL': 'Reagent Plate'
 }
 REAGENT_RESERVOIR = { #22mL per well, 12 wells
@@ -31,12 +31,12 @@ REAGENT_RESERVOIR = { #22mL per well, 12 wells
 }
 WASTE_RESERVOIR = { #290mL per well, 1 well
     'NAME': 'agilent_1_reservoir_290ml',
-    'SLOT': 2,
+    'SLOT': 8,
     'LABEL': 'Waste Reservoir'
 }
 FILTER_TIP_20 = [{
     'NAME': 'opentrons_96_filtertiprack_20ul',
-    'SLOT': 10,
+    'SLOT': 1,
     'LABEL': 'Filter Tip S-10'
 }, {
     'NAME': 'opentrons_96_filtertiprack_20ul',
@@ -53,7 +53,7 @@ FILTER_TIP_200 = [{
     'LABEL': 'Filter Tip S-6'
 }, {
     'NAME': 'opentrons_96_filtertiprack_200ul',
-    'SLOT': 7,
+    'SLOT': 5,
     'LABEL': 'Filter Tip S-7'
 }, {
     'NAME': 'opentrons_96_filtertiprack_200ul',
