@@ -83,10 +83,12 @@ ELUTION = 'Elution Solution'
 ASPIRATE_DEPTH_BOTTOM = 2.00 #2mm from bottle
 MAG_DECK_HEIGHT = 12 #12mm
 
-VOL_5 = 5 #sm rxn vol
 VOL_15 = 15
 VOL_250 = 250 #large rxn vol
 VOL_500 = 500
+
+VOL_MS2 = 5
+VOL_PK = 5
 VOL_BEAD = 275
 VOL_ELUTE = 50
 VOL_WASTE = 485
