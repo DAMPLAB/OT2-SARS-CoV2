@@ -1,5 +1,6 @@
 # qPCR Assay Setup Protocol
 # Written By Rita Chen 2020-05-21
+# Updated by Dany Fu 2020-06-10
 
 # Before starting the protocol, do following manual steps for prepare the RT‑PCR reactions:
 # Use this procedure if you extracted sample RNA using an original sample input volume of 200 μL.
@@ -22,36 +23,61 @@
 # 6. Seal the plate with MicroAmp™ Optical Adhesive Film, vortex the plate for 10 seconds to ensure proper mixing,\
 # then centrifuge for 1 minute at 2000 rpm to collect the liquid at the bottom of the reaction plate.
 
-from opentrons import labware, instruments, modules, robot
+from opentrons import protocol_api
+metadata = {'apiLevel': '2.2',
+            'protocolName': 'RNA Extraction (MagMAX)',
+            'author': 'Rita Chen, Dany Fu',
+            'description': '''Distributes master mix to 96 well plate'''}
 
-# Load hardware module and labwares
-temp_deck_1 = modules.load('tempdeck', '7')
-temp_deck_2 = modules.load('tempdeck', '8')
-reaction_plate = labware.load('biorad-hardshell-96-PCR','8', 'Reaction Plate', share=True) #250uL/well
-reagent_plate = labware.load('biorad-hardshell-96-PCR', '7', 'Reagnet Plate', share=True) #250uL/well
-reagent_mix = reagent_plate.cols(0) # 15uL per sample, 198uL in the well
+TEMP_DECK = {
+    'NAME': 'Temperature Module',
+    'SLOT': 7
+}
+P200_MULTI = {
+    'NAME': 'p300_multi',
+    'POSITION': 'left'
+}
+FILTER_TIP_20 = [{
+    'NAME': 'opentrons_96_filtertiprack_200ul',
+    'SLOT': 1,
+    'LABEL': 'Filter Tip S-1'
+}]
 
+ASPIRATE_DEPTH_BOTTOM = 2.00 #2mm from bottle
+VOL_MASTER_MIX = 15 # Reaction volume
+TEMP = 4
+VOL_MIX_SM = 10
 
-# Load in 3 of 20ul filter tiprack 
-tr_20 = [labware.load('opentrons_96_filtertiprack_20ul', '9'),\
-labware.load('opentrons_96_filtertiprack_20ul', '10'), labware.load('opentrons_96_filtertiprack_20ul', '11')]
+def run(protocol: protocol_api.ProtocolContext):
+	temp_deck = protocol.load_module(TEMP_DECK['NAME'], location=TEMP_DECK['SLOT'])
+	reaction_plate = temp_deck.load_labware('biorad_96_wellplate_200ul_pcr',
+											label='Reaction Plate')
+	reagent_plate = protocol.load_labware('biorad_96_wellplate_200ul_pcr',
+                                          location=4,
+										  label='Reagent Plate')
+	reagent_mix = reagent_plate.columns()[0]
+	tip_20 = [protocol.load_labware(i['NAME'], location=i['SLOT'], label=i['LABEL'])
+              for i in FILTER_TIP_20]
+	p200 = protocol.load_instrument(P200_MULTI['NAME'], P200_MULTI['POSITION'],
+								    tip_racks=tip_20)
+	p200.well_bottom_clearance.aspirate = ASPIRATE_DEPTH_BOTTOM
+	p200.well_bottom_clearance.dispense = ASPIRATE_DEPTH_BOTTOM
 
-# Load in pipettes
-pipette = instruments.p20_multi_gen2(mount='left', tip_racks=tr_20)
+	num_cols = len(reaction_plate.columns())
 
-num_cols = 12 # Number of columns
-rnx_vol = 15 # Reaction volume
+	temp_deck.set_temperature(celsius=TEMP)
+	add_master_mix(num_cols=num_cols, pipette=p200,
+				   source=reagent_mix, dest=reaction_plate.columns())
 
-# qPCR Assay Preparation stats here____________________________________________________________________________________
-temp_deck_1.set_temperature(4)
-temp_deck_2.set_temperature(4)
-
-# Transfer 15ul of reagent mix (reagent plate) to the pre-prepared reaction plate
-for i in range(num_cols):
-	pipette.pick_up_tip()
-	pipette.mix(5, rnx_vol, reagent_mix.bottom(2.00))
-	pipette.transfer(rnx_vol, reagent_mix.bottom(2.00), reaction_plate.cols(i), new_tip='never')
-	pipette.mix(5, rnx_vol, reaction_plate.cols(i).bottom(2.00))
-	pipette.blow_out()
-    pipette.drop_tip()
-
+def add_master_mix(num_cols=1, pipette=None, source=None, dest=[]):
+	# Transfer 15ul of reagent mix (reagent plate) to the pre-prepared reaction plate
+	for c in range(num_cols):
+		pipette.pick_up_tip()
+		pipette.mix(repetitions=5, volume=VOL_MIX_SM, location=source[0])
+		pipette.aspirate(volume=VOL_MASTER_MIX, location=source[0])
+		pipette.dispense(volume=VOL_MASTER_MIX, location=dest[c][0])
+		pipette.mix(repetitions=5, volume=VOL_MIX_SM)
+		pipette.blow_out()
+		pipette.blow_out()
+		pipette.blow_out()
+		pipette.drop_tip()
