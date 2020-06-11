@@ -2,11 +2,11 @@
 # Hardware
 TEMP_DECK = {
     'NAME': 'Temperature Module',
-    'SLOT': 10
+    'SLOT': 7
 }
 MAG_DECK = {
     'NAME': 'Magnetic Module',
-    'SLOT': 7
+    'SLOT': 10
 }
 
 # Labware
@@ -26,7 +26,7 @@ REAGENT_PLATE = {
 }
 REAGENT_RESERVOIR = { #22mL per well, 12 wells
     'NAME': 'usascientific_12_reservoir_22ml',
-    'SLOT': 4,
+    'SLOT': 5,
     'LABEL': 'Reagent Reservoir'
 }
 WASTE_RESERVOIR = { #290mL per well, 1 well
@@ -40,7 +40,7 @@ FILTER_TIP_20 = [{
     'LABEL': 'Filter Tip S-10'
 }, {
     'NAME': 'opentrons_96_filtertiprack_20ul',
-    'SLOT': 11,
+    'SLOT': 4,
     'LABEL': 'Filter Tip S-11'
 }]
 FILTER_TIP_200 = [{
@@ -53,22 +53,22 @@ FILTER_TIP_200 = [{
     'LABEL': 'Filter Tip S-6'
 }, {
     'NAME': 'opentrons_96_filtertiprack_200ul',
-    'SLOT': 5,
+    'SLOT': 9,
     'LABEL': 'Filter Tip S-7'
 }, {
     'NAME': 'opentrons_96_filtertiprack_200ul',
-    'SLOT': 9,
+    'SLOT': 11,
     'LABEL': 'Filter Tip S-9'
 }]
 
 # Instruments
 P20_MULTI = {
     'NAME': 'p20_multi_gen2',
-    'POSITION': 'left'
+    'POSITION': 'right'
 }
 P200_MULTI = {
     'NAME': 'p300_multi_gen2',
-    'POSITION': 'right'
+    'POSITION': 'left'
 }
 
 # Reagents
