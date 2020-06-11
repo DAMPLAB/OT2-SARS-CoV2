@@ -9,11 +9,11 @@
   # 265 μL of Binding Solution with 10 μL of Total Nucleic Acid Magnetic Beads
 # Include 10% overage when making the Binding Bead Mix for use with multiple reactions.
 # 3. Mix well by inversion, then store at room temperature.
-import math
 import os
 import sys
 sys.path.append(os.getcwd())
 from constants import *
+import math
 from opentrons import protocol_api
 
 metadata = {'apiLevel': '2.2',
@@ -204,8 +204,8 @@ def transfer(vol=0, pipette=None, source=[], dest=[],
                             location=source[0])
         pipette.aspirate(volume=v, location=source[0])
         pipette.dispense(volume=v, location=dest[0].top())
-        pipette.blow_out()
-        pipette.touch_tip()
+        pipette.blow_out(location=dest[0])
+        pipette.blow_out(location=dest[0])
 
     # the final transfer
     if mix_before:
@@ -225,8 +225,8 @@ def transfer(vol=0, pipette=None, source=[], dest=[],
         if len(mix_after) == 2:
             pipette.mix(repetitions=mix_after[0], volume=mix_after[1])
 
-    pipette.blow_out()
-    pipette.touch_tip()
+    pipette.blow_out(location=dest[0])
+    pipette.blow_out(location=dest[0])
     pipette.drop_tip()
 
 def reagent_low(q_remain=0, q_transfer=0):
@@ -238,8 +238,8 @@ def add_proteinase_k(num_cols=1, pipette=None, source=None, dest=[]):
         pipette.mix(repetitions=5, volume=VOL_15, location=source[0])
         pipette.aspirate(volume=VOL_PK, location=source[0])
         pipette.dispense(volume=VOL_PK, location=dest[c][0])
-        pipette.blow_out()
-        pipette.touch_tip()
+        pipette.blow_out(location=dest[c][0])
+        pipette.blow_out(location=dest[c][0])
         pipette.drop_tip()
 
 def add_beads(num_cols=1, pipette=None, source=[], dest=[]):
@@ -264,8 +264,8 @@ def add_ms2(num_cols=1, pipette=None, source=None, dest=[]):
         pipette.aspirate(volume=VOL_MS2, location=source[0])
         pipette.dispense(volume=VOL_MS2, location=dest[c][0])
         pipette.mix(repetitions=8, volume=VOL_15)
-        pipette.blow_out()
-        pipette.touch_tip()
+        pipette.blow_out(location=dest[c][0])
+        pipette.blow_out(location=dest[c][0])
         pipette.drop_tip()
 
 def discard_supernant(num_cols=1, pipette=None, source=[], dest=[]):
@@ -305,7 +305,7 @@ def wash(num_cols=0, pipette=None, source=None, dest=None, vol=0):
     s = 0
     reagent_vol = source[s]['VOL']
     for c in range(num_cols):
-        vol_transfer = VOL_BEAD * pipette.channels
+        vol_transfer = vol * pipette.channels
         if reagent_low(q_remain=reagent_vol, q_transfer=vol_transfer):
             s += 1
             reagent_vol = source[s]['VOL']
