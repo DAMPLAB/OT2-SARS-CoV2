@@ -12,7 +12,7 @@
 import os
 import sys
 sys.path.append(os.getcwd())
-from constants import *
+from rna_constants import *
 import math
 from opentrons import protocol_api
 
@@ -100,7 +100,7 @@ def run(protocol: protocol_api.ProtocolContext):
     """
     # 1. Keeping the plate on the magnet, discard the supernatant from each well.
     # IMPORTANT! Avoid disturbing the beads.
-    discard_supernant(num_cols=num_cols, pipette=p200,
+    discard_supernatant(num_cols=num_cols, pipette=p200,
                       source=reaction_plate.columns(),
                       dest=waste_reservior.columns())
     # Steps 2-7
@@ -186,7 +186,8 @@ def make_reagent_map(reagent_plate, reagent_reservior):
 # prioritize tip reuse by pipetting to the top of the
 # wells until the last dispensation
 def transfer(vol=0, pipette=None, source=[], dest=[],
-             mix_before=None, mix_after=None):
+             mix_before=None, mix_after=None,
+             touch_tip=None):
     n = math.ceil(vol / 200) #TODO remove this hardcoding
     vol_ar = [vol // n + (1 if x < vol % n else 0) for x in range(n)]
     pipette.pick_up_tip()
@@ -205,7 +206,10 @@ def transfer(vol=0, pipette=None, source=[], dest=[],
         pipette.aspirate(volume=v, location=source[0])
         pipette.dispense(volume=v, location=dest[0].top())
         pipette.blow_out(location=dest[0])
-        pipette.blow_out(location=dest[0])
+        if touch_tip:
+            pipette.touch_tip(radius=touch_tip[0],
+                              v_offset=touch_tip[1],
+                              speed=TOUCH_SPEED)
 
     # the final transfer
     if mix_before:
@@ -226,7 +230,10 @@ def transfer(vol=0, pipette=None, source=[], dest=[],
             pipette.mix(repetitions=mix_after[0], volume=mix_after[1])
 
     pipette.blow_out(location=dest[0])
-    pipette.blow_out(location=dest[0])
+    if touch_tip:
+        pipette.touch_tip(radius=touch_tip[0],
+                          v_offset=touch_tip[1],
+                          speed=TOUCH_SPEED)
     pipette.drop_tip()
 
 def reagent_low(q_remain=0, q_transfer=0):
@@ -235,11 +242,13 @@ def reagent_low(q_remain=0, q_transfer=0):
 def add_proteinase_k(num_cols=1, pipette=None, source=None, dest=[]):
     for c in range(num_cols):
         pipette.pick_up_tip()
-        pipette.mix(repetitions=5, volume=VOL_15, location=source[0])
+        pipette.mix(repetitions=5, volume=VOL_10, location=source[0])
         pipette.aspirate(volume=VOL_PK, location=source[0])
         pipette.dispense(volume=VOL_PK, location=dest[c][0])
         pipette.blow_out(location=dest[c][0])
-        pipette.blow_out(location=dest[c][0])
+        pipette.touch_tip(radius=TOUCH_RADIUS_SM_LG,
+                          v_offset=TOUCH_HEIGHT_SM_LG,
+                          speed=TOUCH_SPEED)
         pipette.drop_tip()
 
 def add_beads(num_cols=1, pipette=None, source=[], dest=[]):
@@ -253,22 +262,25 @@ def add_beads(num_cols=1, pipette=None, source=[], dest=[]):
 
         transfer(vol=VOL_BEAD, pipette=pipette,
                  source=source[s]['WELL'], dest=dest[c],
-                 mix_before=(8,), mix_after=(3,))
+                 mix_before=(8,), mix_after=(3,),
+                 touch_tip=(TOUCH_RADIUS_LG_LG, TOUCH_HEIGHT_LG_LG))
 
         reagent_vol -= vol_transfer
 
 def add_ms2(num_cols=1, pipette=None, source=None, dest=[]):
     for c in range(num_cols):
         pipette.pick_up_tip()
-        pipette.mix(repetitions=5, volume=VOL_15, location=source[0])
+        pipette.mix(repetitions=5, volume=VOL_10, location=source[0])
         pipette.aspirate(volume=VOL_MS2, location=source[0])
         pipette.dispense(volume=VOL_MS2, location=dest[c][0])
-        pipette.mix(repetitions=8, volume=VOL_15)
+        pipette.mix(repetitions=8, volume=VOL_10)
         pipette.blow_out(location=dest[c][0])
-        pipette.blow_out(location=dest[c][0])
+        pipette.touch_tip(radius=TOUCH_RADIUS_SM_LG,
+                          v_offset=TOUCH_HEIGHT_SM_LG,
+                          speed=TOUCH_SPEED)
         pipette.drop_tip()
 
-def discard_supernant(num_cols=1, pipette=None, source=[], dest=[]):
+def discard_supernatant(num_cols=1, pipette=None, source=[], dest=[]):
     for c in range(num_cols):
         transfer(vol=VOL_WASTE, pipette=pipette,
                  source=source[c], dest=dest[0])
@@ -297,9 +309,9 @@ def wash_beads(protocol, source=None, vol=0):
 
     # 5. Keeping the plate on the magnet, discard the supernatant from each well.
     # IMPORTANT! Avoid disturbing the beads.
-    discard_supernant(num_cols=num_cols, pipette=p200,
-                      source=reaction_plate.columns(),
-                      dest=waste_reservior.columns())
+    discard_supernatant(num_cols=num_cols, pipette=p200,
+                        source=reaction_plate.columns(),
+                        dest=waste_reservior.columns())
 
 def wash(num_cols=0, pipette=None, source=None, dest=None, vol=0):
     s = 0
@@ -312,16 +324,19 @@ def wash(num_cols=0, pipette=None, source=None, dest=None, vol=0):
 
         transfer(vol=vol, pipette=pipette,
                  source=source[s]['WELL'], dest=dest[c],
-                 mix_before=(3,), mix_after=(5,))
+                 mix_before=(3,), mix_after=(5,),
+                 touch_tip=(TOUCH_RADIUS_LG_LG, TOUCH_HEIGHT_LG_LG))
         reagent_vol -= vol_transfer
 
 def elute(num_cols=1, pipette=None, source=None, dest=[]):
     for c in range(num_cols):
         transfer(vol=VOL_ELUTE, pipette=pipette,
                  source=source['WELL'], dest=dest[c],
-                 mix_before=(3, 175), mix_after=(5, 35))
+                 mix_before=(3, 175), mix_after=(5, 35),
+                 touch_tip=(TOUCH_RADIUS_LG_LG, TOUCH_HEIGHT_LG_LG))
 
 def make_qPCR_plate(num_cols=1, pipette=None, source=[], dest=[]):
     for c in range(num_cols):
         transfer(vol=VOL_ELUTE, pipette=pipette,
-                 source=source[c], dest=dest[c])
+                 source=source[c], dest=dest[c],
+                 touch_tip=(TOUCH_RADIUS_LG_SM, TOUCH_HEIGHT_LG_SM))

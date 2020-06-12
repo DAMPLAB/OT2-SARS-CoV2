@@ -63,11 +63,11 @@ FILTER_TIP_200 = [{
 
 # Instruments
 P20_MULTI = {
-    'NAME': 'p20_multi_gen2',
+    'NAME': 'p10_multi',
     'POSITION': 'right'
 }
 P200_MULTI = {
-    'NAME': 'p300_multi_gen2',
+    'NAME': 'p300_multi',
     'POSITION': 'left'
 }
 
@@ -76,15 +76,28 @@ PROTEINASE_K = 'Proteinase K'
 MS2 = 'MS2 Phage Control'
 BEADS = 'Nucleic Acid Magnetic Beads'
 WASH_BUFFER = 'Wash Buffer'
-ETHANOL1 = 'Ethanol'
-ETHANOL2 = 'Ethanol'
+ETHANOL1 = 'Ethanol_1'
+ETHANOL2 = 'Ethanol_2'
 ELUTION = 'Elution Solution'
 
 ASPIRATE_DEPTH_BOTTOM = 2.00 #2mm from bottle
 MAG_DECK_HEIGHT = 12 #12mm
+TOUCH_SPEED = 20.0
 
-VOL_15 = 15
-VOL_250 = 250 #large rxn vol
+# 10uL pipette with deepwell plate
+TOUCH_RADIUS_SM_LG = 1.00
+TOUCH_HEIGHT_SM_LG = -3.0
+
+# 200uL pipette with deepwell plate
+TOUCH_RADIUS_LG_LG = 0.80
+TOUCH_HEIGHT_LG_LG = -7.0
+
+# 200uL pipette with PCR plate
+TOUCH_RADIUS_LG_SM = 1.00
+TOUCH_HEIGHT_LG_SM = -2.0
+
+VOL_10 = 10
+VOL_250 = 250
 VOL_500 = 500
 
 VOL_MS2 = 5
