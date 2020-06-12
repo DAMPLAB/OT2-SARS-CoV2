@@ -46,7 +46,8 @@ FILTER_TIP_20 = [{
 ASPIRATE_DEPTH_BOTTOM = 2.00 #2mm from bottle
 VOL_MASTER_MIX = 15 # Reaction volume
 TEMP = 4
-VOL_MIX_SM = 10
+TOUCH_HEIGHT = -2.0
+TOUCH_SPEED = 20.0
 
 def run(protocol: protocol_api.ProtocolContext):
 	temp_deck = protocol.load_module(TEMP_DECK['NAME'], location=TEMP_DECK['SLOT'])
@@ -70,14 +71,13 @@ def run(protocol: protocol_api.ProtocolContext):
 				   source=reagent_mix, dest=reaction_plate.columns())
 
 def add_master_mix(num_cols=1, pipette=None, source=None, dest=[]):
-	# Transfer 15ul of reagent mix (reagent plate) to the pre-prepared reaction plate
-	for c in range(num_cols):
-		pipette.pick_up_tip()
-		pipette.mix(repetitions=5, volume=VOL_MIX_SM, location=source[0])
-		pipette.aspirate(volume=VOL_MASTER_MIX, location=source[0])
-		pipette.dispense(volume=VOL_MASTER_MIX, location=dest[c][0])
-		pipette.mix(repetitions=5, volume=VOL_MIX_SM)
-		pipette.blow_out()
-		pipette.blow_out()
-		pipette.blow_out()
-		pipette.drop_tip()
+    # Transfer 15ul of reagent mix (reagent plate) to the pre-prepared reaction plate
+    for c in range(num_cols):
+        pipette.pick_up_tip()
+        pipette.mix(repetitions=5, volume=VOL_MASTER_MIX, location=source[0])
+        pipette.aspirate(volume=VOL_MASTER_MIX, location=source[0])
+        pipette.dispense(volume=VOL_MASTER_MIX, location=dest[c][0])
+        pipette.mix(repetitions=5, volume=VOL_MASTER_MIX)
+        pipette.blow_out(location=dest[c][0])
+        pipette.touch_tip(v_offset=TOUCH_HEIGHT, speed=TOUCH_SPEED)
+        pipette.drop_tip()
