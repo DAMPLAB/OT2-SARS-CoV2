@@ -17,7 +17,6 @@ OUTPUT_PLATE = { #200uL per well, 96 wells
 REACTION_PLATE = { #2.4mL per well, 96 wells
     'NAME': 'usascientific_96_wellplate_2.4ml_deep',
     'LABEL': 'Reaction Plate', #no slot, sits on mag deck
-    'DEPTH': 14.81
 }
 REAGENT_PLATE = {
     'NAME': 'biorad_96_wellplate_200ul_pcr',
@@ -34,39 +33,39 @@ WASTE_RESERVOIR = { #290mL per well, 1 well
     'SLOT': 8,
     'LABEL': 'Waste Reservoir'
 }
-FILTER_TIP_20 = [{
-    'NAME': 'opentrons_96_filtertiprack_20ul',
+FILTER_TIP_10 = [{
+    'NAME': 'opentrons_96_filtertiprack_10ul',
     'SLOT': 1,
-    'LABEL': 'Filter Tip S-10'
+    'LABEL': 'Filter Tip SM1'
 }, {
-    'NAME': 'opentrons_96_filtertiprack_20ul',
+    'NAME': 'opentrons_96_filtertiprack_10ul',
     'SLOT': 4,
-    'LABEL': 'Filter Tip S-11'
+    'LABEL': 'Filter Tip SM4'
 }]
-FILTER_TIP_200 = [{
-    'NAME': 'opentrons_96_filtertiprack_200ul',
+FILTER_TIP_300 = [{
+    'NAME': 'opentrons_96_tiprack_300ul',
     'SLOT': 3,
-    'LABEL': 'Filter Tip S-3'
+    'LABEL': 'Filter Tip LG3'
 }, {
-    'NAME': 'opentrons_96_filtertiprack_200ul',
+    'NAME': 'opentrons_96_tiprack_300ul',
     'SLOT': 6,
-    'LABEL': 'Filter Tip S-6'
+    'LABEL': 'Filter Tip LG6'
 }, {
-    'NAME': 'opentrons_96_filtertiprack_200ul',
+    'NAME': 'opentrons_96_tiprack_300ul',
     'SLOT': 9,
-    'LABEL': 'Filter Tip S-7'
+    'LABEL': 'Filter Tip LG7'
 }, {
-    'NAME': 'opentrons_96_filtertiprack_200ul',
+    'NAME': 'opentrons_96_tiprack_300ul',
     'SLOT': 11,
-    'LABEL': 'Filter Tip S-9'
+    'LABEL': 'Filter Tip LG9'
 }]
 
 # Instruments
-P20_MULTI = {
+P10_MULTI = {
     'NAME': 'p10_multi',
     'POSITION': 'right'
 }
-P200_MULTI = {
+P300_MULTI = {
     'NAME': 'p300_multi',
     'POSITION': 'left'
 }
@@ -80,9 +79,9 @@ ETHANOL1 = 'Ethanol_1'
 ETHANOL2 = 'Ethanol_2'
 ELUTION = 'Elution Solution'
 
-ASPIRATE_DEPTH_BOTTOM = 2.00 #2mm from bottle
+ASPIRATE_DEPTH_BOTTOM = 2.00 #2mm from bottom
 MAG_DECK_HEIGHT = 12 #12mm
-TOUCH_SPEED = 20.0
+TOUCH_SPEED = 20.0 #minimum speed
 
 # 10uL pipette with deepwell plate
 TOUCH_RADIUS_SM_LG = 1.00

@@ -49,20 +49,20 @@ def run(protocol: protocol_api.ProtocolContext):
                                             label=WASTE_RESERVOIR['LABEL'])
 
     # Load in 2 of 20ul filter tiprack
-    tip_20 = [protocol.load_labware(i['NAME'], location=i['SLOT'], label=i['LABEL'])
-              for i in FILTER_TIP_20]
-    p20 = protocol.load_instrument(P20_MULTI['NAME'], P20_MULTI['POSITION'],
-                                   tip_racks=tip_20)
-    p20.well_bottom_clearance.aspirate = ASPIRATE_DEPTH_BOTTOM
-    p20.well_bottom_clearance.dispense = ASPIRATE_DEPTH_BOTTOM
+    tip_10 = [protocol.load_labware(i['NAME'], location=i['SLOT'], label=i['LABEL'])
+              for i in FILTER_TIP_10]
+    p10 = protocol.load_instrument(P10_MULTI['NAME'], P10_MULTI['POSITION'],
+                                   tip_racks=tip_10)
+    p10.well_bottom_clearance.aspirate = ASPIRATE_DEPTH_BOTTOM
+    p10.well_bottom_clearance.dispense = ASPIRATE_DEPTH_BOTTOM
 
     # Load in 4 of 30ul filter tiprack
     tip_200 = [protocol.load_labware(i['NAME'], location=i['SLOT'], label=i['LABEL'])
-               for i in FILTER_TIP_200]
-    p200 = protocol.load_instrument(P200_MULTI['NAME'], P200_MULTI['POSITION'],
+               for i in FILTER_TIP_300]
+    p300 = protocol.load_instrument(P300_MULTI['NAME'], P300_MULTI['POSITION'],
                                     tip_racks=tip_200)
-    p200.well_bottom_clearance.aspirate = ASPIRATE_DEPTH_BOTTOM
-    p200.well_bottom_clearance.dispense = ASPIRATE_DEPTH_BOTTOM
+    p300.well_bottom_clearance.aspirate = ASPIRATE_DEPTH_BOTTOM
+    p300.well_bottom_clearance.dispense = ASPIRATE_DEPTH_BOTTOM
 
     reagent_map = make_reagent_map(reagent_plate, reagent_reservior)
     num_cols = len(reaction_plate.columns())
@@ -72,17 +72,17 @@ def run(protocol: protocol_api.ProtocolContext):
     """
     # 1. Mix and add 5 μL of Proteinase K to each well of reaction plate
     # that already contains 200 μL of sample
-    add_proteinase_k(num_cols=num_cols, pipette=p20,
+    add_proteinase_k(num_cols=num_cols, pipette=p10,
                      source=reagent_map[PROTEINASE_K][0]['WELL'],
                      dest=reaction_plate.columns())
 
     # 2. Mix and add 275 μL of bead solution to each well
-    add_beads(num_cols=num_cols, pipette=p200,
+    add_beads(num_cols=num_cols, pipette=p300,
               source=reagent_map[BEADS],
               dest=reaction_plate.columns())
 
     # 3. Add 5 μL of MS2 Phage Control to each well
-    add_ms2(num_cols=num_cols, pipette=p20,
+    add_ms2(num_cols=num_cols, pipette=p10,
             source=reagent_map[MS2][0]['WELL'],
             dest=reaction_plate.columns())
 
@@ -100,9 +100,9 @@ def run(protocol: protocol_api.ProtocolContext):
     """
     # 1. Keeping the plate on the magnet, discard the supernatant from each well.
     # IMPORTANT! Avoid disturbing the beads.
-    discard_supernatant(num_cols=num_cols, pipette=p200,
-                      source=reaction_plate.columns(),
-                      dest=waste_reservior.columns())
+    discard_supernatant(num_cols=num_cols, pipette=p300,
+                        source=reaction_plate.columns(),
+                        dest=waste_reservior.columns())
     # Steps 2-7
     wash_beads(protocol, source=reagent_map[WASH_BUFFER], vol=VOL_500)
 
@@ -127,7 +127,7 @@ def run(protocol: protocol_api.ProtocolContext):
     """
     temp_deck.set_temperature(celsius=TEMP)
     # 1. Add 50 μL of Elution Solution to each sample, then seal the plate
-    elute(num_cols=num_cols, pipette=p200,
+    elute(num_cols=num_cols, pipette=p300,
           source=reagent_map[ELUTION][0],
           dest=reaction_plate.columns())
     # 2. Shake at 1,050 rpm for 5 minutes.
@@ -145,7 +145,7 @@ def run(protocol: protocol_api.ProtocolContext):
     # IMPORTANT! To prevent evaporation, seal the plate containing the eluate immediately after the transfers are complete.
     # Note: Significant bead carry over may adversely impact RT-PCR performance. Place the plate on ice for immediate use\
     # in real-time RT‑PCR.
-    make_qPCR_plate(num_cols=num_cols, pipette=p200,
+    make_qPCR_plate(num_cols=num_cols, pipette=p300,
                     source=reaction_plate.columns(),
                     dest=output_plate.columns())
 
@@ -188,7 +188,7 @@ def make_reagent_map(reagent_plate, reagent_reservior):
 def transfer(vol=0, pipette=None, source=[], dest=[],
              mix_before=None, mix_after=None,
              touch_tip=None):
-    n = math.ceil(vol / 200) #TODO remove this hardcoding
+    n = math.ceil(vol / 275) #TODO remove this hardcoding
     vol_ar = [vol // n + (1 if x < vol % n else 0) for x in range(n)]
     pipette.pick_up_tip()
 
@@ -287,7 +287,7 @@ def discard_supernatant(num_cols=1, pipette=None, source=[], dest=[]):
 
 def wash_beads(protocol, source=None, vol=0):
     mag_deck = protocol.loaded_modules[MAG_DECK['SLOT']]
-    p200 = protocol.loaded_instruments[P200_MULTI['POSITION']]
+    p300 = protocol.loaded_instruments[P300_MULTI['POSITION']]
     reaction_plate = protocol.loaded_labwares[MAG_DECK['SLOT']]
     waste_reservior = protocol.loaded_labwares[WASTE_RESERVOIR['SLOT']]
     num_cols = len(reaction_plate.columns())
@@ -295,7 +295,7 @@ def wash_beads(protocol, source=None, vol=0):
     # 2. Remove the plate from the magnetic stand
     mag_deck.disengage()
 
-    wash(num_cols=num_cols, pipette=p200,
+    wash(num_cols=num_cols, pipette=p300,
          source=source, dest=reaction_plate.columns(),
          vol=vol)
 
@@ -309,7 +309,7 @@ def wash_beads(protocol, source=None, vol=0):
 
     # 5. Keeping the plate on the magnet, discard the supernatant from each well.
     # IMPORTANT! Avoid disturbing the beads.
-    discard_supernatant(num_cols=num_cols, pipette=p200,
+    discard_supernatant(num_cols=num_cols, pipette=p300,
                         source=reaction_plate.columns(),
                         dest=waste_reservior.columns())
 
