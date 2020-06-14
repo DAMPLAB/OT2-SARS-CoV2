@@ -48,21 +48,21 @@ def run(protocol: protocol_api.ProtocolContext):
                                             location=WASTE_RESERVOIR['SLOT'],
                                             label=WASTE_RESERVOIR['LABEL'])
 
-    # Load in 2 of 20ul filter tiprack
+    # Load in 2 of 10ul filter tiprack
     tip_10 = [protocol.load_labware(i['NAME'], location=i['SLOT'], label=i['LABEL'])
               for i in FILTER_TIP_10]
     p10 = protocol.load_instrument(P10_MULTI['NAME'], P10_MULTI['POSITION'],
                                    tip_racks=tip_10)
-    p10.well_bottom_clearance.aspirate = ASPIRATE_DEPTH_BOTTOM
-    p10.well_bottom_clearance.dispense = ASPIRATE_DEPTH_BOTTOM
+    p10.well_bottom_clearance.aspirate = DEPTH_BOTTOM_MID
+    p10.well_bottom_clearance.dispense = DEPTH_BOTTOM_MID
 
-    # Load in 4 of 30ul filter tiprack
-    tip_200 = [protocol.load_labware(i['NAME'], location=i['SLOT'], label=i['LABEL'])
+    # Load in 4 of 300ul filter tiprack
+    tip_300 = [protocol.load_labware(i['NAME'], location=i['SLOT'], label=i['LABEL'])
                for i in FILTER_TIP_300]
     p300 = protocol.load_instrument(P300_MULTI['NAME'], P300_MULTI['POSITION'],
-                                    tip_racks=tip_200)
-    p300.well_bottom_clearance.aspirate = ASPIRATE_DEPTH_BOTTOM
-    p300.well_bottom_clearance.dispense = ASPIRATE_DEPTH_BOTTOM
+                                    tip_racks=tip_300)
+    p300.well_bottom_clearance.aspirate = DEPTH_BOTTOM_MID
+    p300.well_bottom_clearance.dispense = DEPTH_BOTTOM_MID
 
     reagent_map = make_reagent_map(reagent_plate, reagent_reservior)
     num_cols = len(reaction_plate.columns())
@@ -102,13 +102,14 @@ def run(protocol: protocol_api.ProtocolContext):
     # IMPORTANT! Avoid disturbing the beads.
     discard_supernatant(num_cols=num_cols, pipette=p300,
                         source=reaction_plate.columns(),
-                        dest=waste_reservior.columns())
+                        dest=waste_reservior.columns(),
+                        vol=VOL_WASTE)
     # Steps 2-7
     wash_beads(protocol, source=reagent_map[WASH_BUFFER], vol=VOL_500)
 
-    # add more 200uL tips
+    # add more 300uL tips
     protocol.pause()
-    for t in tip_200:
+    for t in tip_300:
         t.reset()
 
     wash_beads(protocol, source=reagent_map[ETHANOL1], vol=VOL_500)
@@ -118,8 +119,8 @@ def run(protocol: protocol_api.ProtocolContext):
     # Happens outside of OT2
     protocol.pause()
 
-    # add more 200uL tips
-    for t in tip_200:
+    # add more 300uL tips
+    for t in tip_300:
         t.reset()
 
     """
@@ -156,7 +157,7 @@ def make_reagent_map(reagent_plate, reagent_reservior):
             {'VOL': 528, 'WELL': reagent_plate.columns()[0]}
         ],
         MS2: [ # 5uL per sample, 52uL in the well
-            {'VOL': 52, 'WELL': reagent_plate.columns()[1]}
+            {'VOL': 528, 'WELL': reagent_plate.columns()[1]}
         ],
         ELUTION: [ # 50uL per sample, 5.28mL in the well
             {'VOL': 5280, 'WELL': reagent_reservior.columns()[10]}
@@ -242,7 +243,7 @@ def reagent_low(q_remain=0, q_transfer=0):
 def add_proteinase_k(num_cols=1, pipette=None, source=None, dest=[]):
     for c in range(num_cols):
         pipette.pick_up_tip()
-        pipette.mix(repetitions=5, volume=VOL_10, location=source[0])
+        pipette.mix(repetitions=2, volume=VOL_10, location=source[0])
         pipette.aspirate(volume=VOL_PK, location=source[0])
         pipette.dispense(volume=VOL_PK, location=dest[c][0])
         pipette.blow_out(location=dest[c][0])
@@ -262,7 +263,7 @@ def add_beads(num_cols=1, pipette=None, source=[], dest=[]):
 
         transfer(vol=VOL_BEAD, pipette=pipette,
                  source=source[s]['WELL'], dest=dest[c],
-                 mix_before=(8,), mix_after=(3,),
+                 mix_before=(5,), mix_after=(2,),
                  touch_tip=(TOUCH_RADIUS_LG_LG, TOUCH_HEIGHT_LG_LG))
 
         reagent_vol -= vol_transfer
@@ -270,20 +271,22 @@ def add_beads(num_cols=1, pipette=None, source=[], dest=[]):
 def add_ms2(num_cols=1, pipette=None, source=None, dest=[]):
     for c in range(num_cols):
         pipette.pick_up_tip()
-        pipette.mix(repetitions=5, volume=VOL_10, location=source[0])
+        pipette.mix(repetitions=2, volume=VOL_10, location=source[0])
         pipette.aspirate(volume=VOL_MS2, location=source[0])
         pipette.dispense(volume=VOL_MS2, location=dest[c][0])
-        pipette.mix(repetitions=8, volume=VOL_10)
+        pipette.mix(repetitions=3, volume=VOL_10)
         pipette.blow_out(location=dest[c][0])
         pipette.touch_tip(radius=TOUCH_RADIUS_SM_LG,
                           v_offset=TOUCH_HEIGHT_SM_LG,
                           speed=TOUCH_SPEED)
         pipette.drop_tip()
 
-def discard_supernatant(num_cols=1, pipette=None, source=[], dest=[]):
+def discard_supernatant(num_cols=1, pipette=None, source=[], dest=[], vol=0):
+    pipette.well_bottom_clearance.aspirate = DEPTH_BOTTOM_LOW
     for c in range(num_cols):
-        transfer(vol=VOL_WASTE, pipette=pipette,
+        transfer(vol=vol, pipette=pipette,
                  source=source[c], dest=dest[0])
+    pipette.well_bottom_clearance.aspirate = DEPTH_BOTTOM_MID
 
 def wash_beads(protocol, source=None, vol=0):
     mag_deck = protocol.loaded_modules[MAG_DECK['SLOT']]
@@ -311,7 +314,8 @@ def wash_beads(protocol, source=None, vol=0):
     # IMPORTANT! Avoid disturbing the beads.
     discard_supernatant(num_cols=num_cols, pipette=p300,
                         source=reaction_plate.columns(),
-                        dest=waste_reservior.columns())
+                        dest=waste_reservior.columns(),
+                        vol=vol)
 
 def wash(num_cols=0, pipette=None, source=None, dest=None, vol=0):
     s = 0
@@ -329,11 +333,13 @@ def wash(num_cols=0, pipette=None, source=None, dest=None, vol=0):
         reagent_vol -= vol_transfer
 
 def elute(num_cols=1, pipette=None, source=None, dest=[]):
+    pipette.well_bottom_clearance.dispense = DEPTH_BOTTOM_LOW
     for c in range(num_cols):
         transfer(vol=VOL_ELUTE, pipette=pipette,
                  source=source['WELL'], dest=dest[c],
                  mix_before=(3, 175), mix_after=(5, 35),
                  touch_tip=(TOUCH_RADIUS_LG_LG, TOUCH_HEIGHT_LG_LG))
+    pipette.well_bottom_clearance.aspirate = DEPTH_BOTTOM_MID
 
 def make_qPCR_plate(num_cols=1, pipette=None, source=[], dest=[]):
     for c in range(num_cols):

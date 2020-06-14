@@ -1,4 +1,3 @@
-
 # Hardware
 TEMP_DECK = {
     'NAME': 'Temperature Module',
@@ -79,7 +78,9 @@ ETHANOL1 = 'Ethanol_1'
 ETHANOL2 = 'Ethanol_2'
 ELUTION = 'Elution Solution'
 
-ASPIRATE_DEPTH_BOTTOM = 2.00 #2mm from bottom
+DEPTH_BOTTOM_HIGH = 2.50 #2mm from bottom
+DEPTH_BOTTOM_MID = 2.00 #2mm from bottom
+DEPTH_BOTTOM_LOW = 1.00
 MAG_DECK_HEIGHT = 12 #12mm
 TOUCH_SPEED = 20.0 #minimum speed
 
@@ -88,7 +89,7 @@ TOUCH_RADIUS_SM_LG = 1.00
 TOUCH_HEIGHT_SM_LG = -3.0
 
 # 200uL pipette with deepwell plate
-TOUCH_RADIUS_LG_LG = 0.80
+TOUCH_RADIUS_LG_LG = 0.75
 TOUCH_HEIGHT_LG_LG = -7.0
 
 # 200uL pipette with PCR plate
