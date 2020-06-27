@@ -189,7 +189,8 @@ def make_reagent_map(reagent_plate, reagent_reservior):
 def transfer(vol=0, pipette=None, source=[], dest=[],
              mix_before=None, mix_after=None,
              touch_tip=None):
-    n = math.ceil(vol / 275) #TODO remove this hardcoding
+    # https://github.com/Opentrons/opentrons/issues/5815#issuecomment-644849879
+    n = math.ceil(vol / pipette.hw_pipette['working_volume'])
     vol_ar = [vol // n + (1 if x < vol % n else 0) for x in range(n)]
     pipette.pick_up_tip()
 
