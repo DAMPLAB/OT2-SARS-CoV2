@@ -264,10 +264,10 @@ def add_beads(num_cols=1, pipette=None, source=[], dest=[]):
         reagent_vol -= vol_transfer
 
 def add_ms2(num_cols=1, pipette=None, source=None, dest=[]):
-    for c in range(num_cols):
-        transfer(vol=VOL_PK, pipette=None,
-                 source=source[0], dest=dest[c][0],
-                 mix_before=(2, VOL_10), mix_after=(3, VOL_SAMPLE),
+    for c in range(2):
+        transfer(vol=VOL_PK, pipette=p20,
+                 source=source, dest=dest[c],
+                 mix_before=(2, VOL_10), mix_after=(3, VOL_10),
                  touch_tip=(TOUCH_RADIUS_SM_LG, TOUCH_RADIUS_SM_LG))
 
 def discard_supernatant(num_cols=1, pipette=None, source=[], dest=[], vol=0):
