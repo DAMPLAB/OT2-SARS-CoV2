@@ -186,13 +186,11 @@ def make_reagent_map(reagent_plate, reagent_reservior):
 # wells until the last dispensation
 def transfer(vol=0, pipette=None, source=[], dest=[],
              mix_before=None, mix_after=None,
-             touch_tip=None):
-    # https://github.com/Opentrons/opentrons/issues/5815#issuecomment-644849879
+             touch_tip=None, delay_time_s=None):
     n = math.ceil(vol / pipette.hw_pipette['working_volume'])
     vol_ar = [vol // n + (1 if x < vol % n else 0) for x in range(n)]
     pipette.pick_up_tip()
 
-    # if vol exceeds max vol of tip,
     # dispense to the top of the well so we can reuse the tips
     for v in vol_ar[:-1]:
         if mix_before:
@@ -205,6 +203,9 @@ def transfer(vol=0, pipette=None, source=[], dest=[],
                             volume=mix_before[1],
                             location=source[0])
         pipette.aspirate(volume=v, location=source[0])
+        if(delay_time_s):
+            pipette.air_gap(volume=0)
+            protocol.delay(seconds=delay_time_s)
         pipette.dispense(volume=v, location=dest[0].top())
         pipette.blow_out(location=dest[0])
         if touch_tip:
@@ -223,6 +224,9 @@ def transfer(vol=0, pipette=None, source=[], dest=[],
                         volume=mix_before[1],
                         location=source[0])
     pipette.aspirate(volume=vol_ar[-1], location=source[0])
+    if(delay_time_s):
+        pipette.air_gap(volume=0)
+        protocol.delay(seconds=delay_time_s)
     pipette.dispense(volume=vol_ar[-1], location=dest[0])
     if mix_after:
         if len(mix_after) == 1:
@@ -259,7 +263,8 @@ def add_beads(num_cols=1, pipette=None, source=[], dest=[]):
         transfer(vol=VOL_BEAD, pipette=pipette,
                  source=source[s]['WELL'], dest=dest[c],
                  mix_before=(5,), mix_after=(2,),
-                 touch_tip=(TOUCH_RADIUS_LG_LG, TOUCH_HEIGHT_LG_LG))
+                 touch_tip=(TOUCH_RADIUS_LG_LG, TOUCH_HEIGHT_LG_LG),
+                 delay_time_s=5)
 
         reagent_vol -= vol_transfer
 
