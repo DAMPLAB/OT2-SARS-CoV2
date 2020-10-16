@@ -53,16 +53,14 @@ def run(protocol: protocol_api.ProtocolContext):
               for i in FILTER_TIP_10]
     p10 = protocol.load_instrument(P10_MULTI['NAME'], P10_MULTI['POSITION'],
                                    tip_racks=tip_10)
-    p10.well_bottom_clearance.aspirate = DEPTH_BOTTOM_MID
-    p10.well_bottom_clearance.dispense = DEPTH_BOTTOM_MID
+    reset_pipette_depth(p10)
 
     # Load in 4 of 300ul filter tiprack
     tip_300 = [protocol.load_labware(i['NAME'], location=i['SLOT'], label=i['LABEL'])
                for i in FILTER_TIP_300]
     p300 = protocol.load_instrument(P300_MULTI['NAME'], P300_MULTI['POSITION'],
                                     tip_racks=tip_300)
-    p300.well_bottom_clearance.aspirate = DEPTH_BOTTOM_MID
-    p300.well_bottom_clearance.dispense = DEPTH_BOTTOM_MID
+    reset_pipette_depth(p300)
 
     reagent_map = make_reagent_map(reagent_plate, reagent_reservior)
     num_cols = len(reaction_plate.columns())
@@ -182,8 +180,8 @@ def make_reagent_map(reagent_plate, reagent_reservior):
         ]
     }
 
-# Custom transfer function for when the volume needed
-# exceeds the pipette's max volume. This function will
+# Custom transfer function; when the volume needed
+# exceeds the pipette's max volume this function will
 # prioritize tip reuse by pipetting to the top of the
 # wells until the last dispensation
 def transfer(vol=0, pipette=None, source=[], dest=[],
@@ -194,6 +192,7 @@ def transfer(vol=0, pipette=None, source=[], dest=[],
     vol_ar = [vol // n + (1 if x < vol % n else 0) for x in range(n)]
     pipette.pick_up_tip()
 
+    # if vol exceeds max vol of tip,
     # dispense to the top of the well so we can reuse the tips
     for v in vol_ar[:-1]:
         if mix_before:
@@ -243,15 +242,10 @@ def reagent_low(q_remain=0, q_transfer=0):
 
 def add_proteinase_k(num_cols=1, pipette=None, source=None, dest=[]):
     for c in range(num_cols):
-        pipette.pick_up_tip()
-        pipette.mix(repetitions=2, volume=VOL_10, location=source[0])
-        pipette.aspirate(volume=VOL_PK, location=source[0])
-        pipette.dispense(volume=VOL_PK, location=dest[c][0])
-        pipette.blow_out(location=dest[c][0])
-        pipette.touch_tip(radius=TOUCH_RADIUS_SM_LG,
-                          v_offset=TOUCH_HEIGHT_SM_LG,
-                          speed=TOUCH_SPEED)
-        pipette.drop_tip()
+        transfer(vol=VOL_PK, pipette=pipette,
+                 source=source, dest=dest[c],
+                 mix_before=(2, VOL_10), mix_after=(3, VOL_SAMPLE),
+                 touch_tip=(TOUCH_RADIUS_SM_LG, TOUCH_HEIGHT_SM_LG))
 
 def add_beads(num_cols=1, pipette=None, source=[], dest=[]):
     s = 0
@@ -271,23 +265,17 @@ def add_beads(num_cols=1, pipette=None, source=[], dest=[]):
 
 def add_ms2(num_cols=1, pipette=None, source=None, dest=[]):
     for c in range(num_cols):
-        pipette.pick_up_tip()
-        pipette.mix(repetitions=2, volume=VOL_10, location=source[0])
-        pipette.aspirate(volume=VOL_MS2, location=source[0])
-        pipette.dispense(volume=VOL_MS2, location=dest[c][0])
-        pipette.mix(repetitions=3, volume=VOL_10)
-        pipette.blow_out(location=dest[c][0])
-        pipette.touch_tip(radius=TOUCH_RADIUS_SM_LG,
-                          v_offset=TOUCH_HEIGHT_SM_LG,
-                          speed=TOUCH_SPEED)
-        pipette.drop_tip()
+        transfer(vol=VOL_PK, pipette=pipette,
+                 source=source, dest=dest[c],
+                 mix_before=(2, VOL_10), mix_after=(3, VOL_10),
+                 touch_tip=(TOUCH_RADIUS_SM_LG, TOUCH_HEIGHT_SM_LG))
 
 def discard_supernatant(num_cols=1, pipette=None, source=[], dest=[], vol=0):
     pipette.well_bottom_clearance.aspirate = DEPTH_BOTTOM_LOW
     for c in range(num_cols):
         transfer(vol=vol, pipette=pipette,
                  source=source[c], dest=dest[0])
-    pipette.well_bottom_clearance.aspirate = DEPTH_BOTTOM_MID
+    reset_pipette_depth(pipette)
 
 def wash_beads(protocol, source=None, vol=0):
     mag_deck = protocol.loaded_modules[MAG_DECK['SLOT']]
@@ -340,10 +328,16 @@ def elute(num_cols=1, pipette=None, source=None, dest=[]):
                  source=source['WELL'], dest=dest[c],
                  mix_before=(3, 175), mix_after=(5, 35),
                  touch_tip=(TOUCH_RADIUS_LG_LG, TOUCH_HEIGHT_LG_LG))
-    pipette.well_bottom_clearance.aspirate = DEPTH_BOTTOM_MID
+    reset_pipette_depth(pipette)
 
 def make_qPCR_plate(num_cols=1, pipette=None, source=[], dest=[]):
+    pipette.well_bottom_clearance.aspirate = DEPTH_BOTTOM_LOW
     for c in range(num_cols):
         transfer(vol=VOL_ELUTE, pipette=pipette,
                  source=source[c], dest=dest[c],
                  touch_tip=(TOUCH_RADIUS_LG_SM, TOUCH_HEIGHT_LG_SM))
+    reset_pipette_depth(pipette)
+
+def reset_pipette_depth(pipette):
+    pipette.well_bottom_clearance.aspirate = DEPTH_BOTTOM_MID
+    pipette.well_bottom_clearance.dispense = DEPTH_BOTTOM_MID

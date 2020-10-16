@@ -65,7 +65,7 @@ P10_MULTI = {
     'POSITION': 'right'
 }
 P300_MULTI = {
-    'NAME': 'p300_multi',
+    'NAME': 'p300_multi_gen2',
     'POSITION': 'left'
 }
 
@@ -100,6 +100,7 @@ VOL_10 = 10
 VOL_250 = 250
 VOL_500 = 500
 
+VOL_SAMPLE = 200
 VOL_MS2 = 5
 VOL_PK = 5
 VOL_BEAD = 275
