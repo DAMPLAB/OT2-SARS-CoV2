@@ -52,11 +52,11 @@ FILTER_TIP_300 = [{
 }, {
     'NAME': 'opentrons_96_tiprack_300ul',
     'SLOT': 9,
-    'LABEL': 'Filter Tip LG7'
+    'LABEL': 'Filter Tip LG9'
 }, {
     'NAME': 'opentrons_96_tiprack_300ul',
     'SLOT': 11,
-    'LABEL': 'Filter Tip LG9'
+    'LABEL': 'Filter Tip LG11'
 }]
 
 # Instruments
