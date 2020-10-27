@@ -2,6 +2,121 @@
 # Written By Rita Chen 2020-05-21
 # Updated by Dany Fu 2020-05-25
 
+# Hardware
+TEMP_DECK = {
+    'NAME': 'Temperature Module GEN2',
+    'SLOT': 7
+}
+MAG_DECK = {
+    'NAME': 'Magnetic Module', # gen 1 magnets
+    'SLOT': 10
+}
+
+# Labware
+OUTPUT_PLATE = { #200uL per well, 96 wells
+    'NAME': 'biorad_96_wellplate_200ul_pcr',
+    'LABEL': 'Output Plate' #no slot, sits on temp deck
+}
+REACTION_PLATE = { #2.4mL per well, 96 wells
+    'NAME': 'usascientific_96_wellplate_2.4ml_deep',
+    'LABEL': 'Reaction Plate', #no slot, sits on mag deck
+}
+REAGENT_PLATE = {
+    'NAME': 'biorad_96_wellplate_200ul_pcr',
+    'SLOT': 2,
+    'LABEL': 'Reagent Plate'
+}
+REAGENT_RESERVOIR = { #22mL per well, 12 wells
+    'NAME': 'usascientific_12_reservoir_22ml',
+    'SLOT': 11,
+    'LABEL': 'Reagent Reservoir'
+}
+WASTE_RESERVOIR = { #290mL per well, 1 well
+    'NAME': 'agilent_1_reservoir_290ml',
+    'SLOT': 8,
+    'LABEL': 'Waste Reservoir'
+}
+FILTER_TIP_20 = [{
+    'NAME': 'opentrons_96_filtertiprack_20ul',
+    'SLOT': 1,
+    'LABEL': 'Filter Tip SM1'
+}, {
+    'NAME': 'opentrons_96_filtertiprack_20ul',
+    'SLOT': 4,
+    'LABEL': 'Filter Tip SM4'
+}]
+FILTER_TIP_200 = [{
+    'NAME': 'opentrons_96_filtertiprack_200ul',
+    'SLOT': 3,
+    'LABEL': 'Filter Tip LG3'
+}, {
+    'NAME': 'opentrons_96_filtertiprack_200ul',
+    'SLOT': 6,
+    'LABEL': 'Filter Tip LG6'
+}, {
+    'NAME': 'opentrons_96_filtertiprack_200ul',
+    'SLOT': 9,
+    'LABEL': 'Filter Tip LG9'
+}, {
+    'NAME': 'opentrons_96_filtertiprack_200ul',
+    'SLOT': 5,
+    'LABEL': 'Filter Tip LG5'
+}]
+
+# Instruments
+P20_MULTI = {
+    'NAME': 'p20_multi_gen2',
+    'POSITION': 'right'
+}
+P300_MULTI = {
+    'NAME': 'p300_multi_gen2',
+    'POSITION': 'left'
+}
+
+# Reagents
+PROTEINASE_K = 'Proteinase K'
+MS2 = 'MS2 Phage Control'
+BEADS = 'Nucleic Acid Magnetic Beads'
+WASH_BUFFER = 'Wash Buffer'
+ETHANOL1 = 'Ethanol_1'
+ETHANOL2 = 'Ethanol_2'
+ELUTION = 'Elution Solution'
+
+DEFAULT_ASPIRATE_SPEED = 94
+DEFAULT_DISPENSE_SPEED = 94
+ASPIRATE_SPEED = 50
+DISPENSE_SPEED = 50
+
+DEPTH_BOTTOM_MID = 2.00 #2mm from bottom
+DEPTH_BOTTOM_LOW = 1.00
+TOUCH_SPEED = 20.0 #minimum speed
+
+# 10uL pipette with deepwell plate
+TOUCH_RADIUS_SM_LG = 1.00
+TOUCH_HEIGHT_SM_LG = -3.0
+
+# 200uL pipette with deepwell plate
+TOUCH_RADIUS_LG_LG = 0.75
+TOUCH_HEIGHT_LG_LG = -7.0
+
+# 200uL pipette with PCR plate
+TOUCH_RADIUS_LG_SM = 1.00
+TOUCH_HEIGHT_LG_SM = -2.0
+
+VOL_10 = 10
+VOL_250 = 250
+VOL_500 = 500
+
+VOL_SAMPLE = 200
+VOL_MS2 = 5
+VOL_PK = 5
+VOL_BEAD = 275
+VOL_ELUTE = 50
+VOL_WASTE = 485
+
+TEMP = 4
+MAGDECK_ENGAGE_HEIGHT = 12
+
 # Before starting the protocol, do following manual steps for prepare binding bead mix:
 # Prepare the required amount of Binding Bead Mix on each day of use.
 # 1. Vortex the Total Nucleic Acid Magnetic Beads to ensure that the bead mixture is homogeneous.
@@ -9,14 +124,10 @@
   # 265 μL of Binding Solution with 10 μL of Total Nucleic Acid Magnetic Beads
 # Include 10% overage when making the Binding Bead Mix for use with multiple reactions.
 # 3. Mix well by inversion, then store at room temperature.
-import os
-import sys
-sys.path.append(os.getcwd())
-from rna_constants import *
 import math
 from opentrons import protocol_api
 
-metadata = {'apiLevel': '2.2',
+metadata = {'apiLevel': '2.7',
             'protocolName': 'RNA Extraction (MagMAX)',
             'author': 'Rita Chen, Dany Fu',
             'description': '''Extract RNA using the MagMAXTM Viral/Pathogen II
@@ -48,18 +159,18 @@ def run(protocol: protocol_api.ProtocolContext):
                                             location=WASTE_RESERVOIR['SLOT'],
                                             label=WASTE_RESERVOIR['LABEL'])
 
-    # Load in 2 of 10ul filter tiprack
-    tip_10 = [protocol.load_labware(i['NAME'], location=i['SLOT'], label=i['LABEL'])
-              for i in FILTER_TIP_10]
-    p10 = protocol.load_instrument(P10_MULTI['NAME'], P10_MULTI['POSITION'],
-                                   tip_racks=tip_10)
-    reset_pipette_depth(p10)
+    # Load in 2 of 20ul filter tiprack
+    tip_20 = [protocol.load_labware(i['NAME'], location=i['SLOT'], label=i['LABEL'])
+              for i in FILTER_TIP_20]
+    p20 = protocol.load_instrument(P20_MULTI['NAME'], P20_MULTI['POSITION'],
+                                   tip_racks=tip_20)
+    reset_pipette_depth(p20)
 
-    # Load in 4 of 300ul filter tiprack
-    tip_300 = [protocol.load_labware(i['NAME'], location=i['SLOT'], label=i['LABEL'])
-               for i in FILTER_TIP_300]
+    # Load in 4 of 200ul filter tiprack
+    tip_200 = [protocol.load_labware(i['NAME'], location=i['SLOT'], label=i['LABEL'])
+               for i in FILTER_TIP_200]
     p300 = protocol.load_instrument(P300_MULTI['NAME'], P300_MULTI['POSITION'],
-                                    tip_racks=tip_300)
+                                    tip_racks=tip_200)
     reset_pipette_depth(p300)
 
     reagent_map = make_reagent_map(reagent_plate, reagent_reservior)
@@ -70,17 +181,18 @@ def run(protocol: protocol_api.ProtocolContext):
     """
     # 1. Mix and add 5 μL of Proteinase K to each well of reaction plate
     # that already contains 200 μL of sample
-    add_proteinase_k(num_cols=num_cols, pipette=p10,
+    add_proteinase_k(num_cols=num_cols, pipette=p20,
                      source=reagent_map[PROTEINASE_K][0]['WELL'],
                      dest=reaction_plate.columns())
 
     # 2. Mix and add 275 μL of bead solution to each well
     add_beads(num_cols=num_cols, pipette=p300,
               source=reagent_map[BEADS],
-              dest=reaction_plate.columns())
+              dest=reaction_plate.columns(),
+              protocol=protocol)
 
     # 3. Add 5 μL of MS2 Phage Control to each well
-    add_ms2(num_cols=num_cols, pipette=p10,
+    add_ms2(num_cols=num_cols, pipette=p20,
             source=reagent_map[MS2][0]['WELL'],
             dest=reaction_plate.columns())
 
@@ -90,7 +202,7 @@ def run(protocol: protocol_api.ProtocolContext):
     protocol.pause()
 
     # 6. Place the sealed plate on the magnetic stand for 10 minutes or until all of the beads have collected.
-    mag_deck.engage(height=MAG_DECK_HEIGHT) # Raise the Magnetic Module’s magnets.
+    mag_deck.engage(height=MAGDECK_ENGAGE_HEIGHT) # Raise the Magnetic Module’s magnets.
     protocol.delay(minutes=10)
 
     """
@@ -100,14 +212,13 @@ def run(protocol: protocol_api.ProtocolContext):
     # IMPORTANT! Avoid disturbing the beads.
     discard_supernatant(num_cols=num_cols, pipette=p300,
                         source=reaction_plate.columns(),
-                        dest=waste_reservior.columns(),
-                        vol=VOL_WASTE)
+                        dest=waste_reservior.columns())
     # Steps 2-7
     wash_beads(protocol, source=reagent_map[WASH_BUFFER], vol=VOL_500)
 
     # add more 300uL tips
     protocol.pause()
-    for t in tip_300:
+    for t in tip_200:
         t.reset()
 
     wash_beads(protocol, source=reagent_map[ETHANOL1], vol=VOL_500)
@@ -118,7 +229,7 @@ def run(protocol: protocol_api.ProtocolContext):
     protocol.pause()
 
     # add more 300uL tips
-    for t in tip_300:
+    for t in tip_200:
         t.reset()
 
     """
@@ -136,7 +247,7 @@ def run(protocol: protocol_api.ProtocolContext):
     protocol.pause()
 
     # 5. Place the sealed plate on the magnetic stand for 3 minutes or until clear to collect the beads against the magnets.
-    mag_deck.engage(height=MAG_DECK_HEIGHT)
+    mag_deck.engage(height=MAGDECK_ENGAGE_HEIGHT)
     protocol.delay(minutes=3)
 
     # 6. Keeping the plate on the magnet, transfer the eluates to a fresh standard
@@ -184,10 +295,18 @@ def make_reagent_map(reagent_plate, reagent_reservior):
 # exceeds the pipette's max volume this function will
 # prioritize tip reuse by pipetting to the top of the
 # wells until the last dispensation
-def transfer(vol=0, pipette=None, source=[], dest=[],
+def transfer(vol=0, dispense_all=True, pipette=None, source=[], dest=[],
              mix_before=None, mix_after=None,
-             touch_tip=None, delay_time_s=None):
-    n = math.ceil(vol / pipette.hw_pipette['working_volume'])
+             touch_tip=None, delay_time_s=None, protocol=None):
+    max_vol = pipette.hw_pipette['working_volume']
+    if max_vol == 300:
+        max_vol = 200 # remove this crap
+    if mix_before and len(mix_before) == 2:
+        mix_before_vol = max_vol if mix_before[1] > max_vol else mix_before[1]
+    if mix_after and len(mix_after) == 2:
+        mix_after_vol = max_vol if mix_after[1] > max_vol else mix_after[1]
+
+    n = math.ceil(vol / max_vol)
     vol_ar = [vol // n + (1 if x < vol % n else 0) for x in range(n)]
     pipette.pick_up_tip()
 
@@ -200,18 +319,16 @@ def transfer(vol=0, pipette=None, source=[], dest=[],
                             location=source[0])
             if len(mix_before) == 2:
                 pipette.mix(repetitions=mix_before[0],
-                            volume=mix_before[1],
+                            volume=mix_before_vol,
                             location=source[0])
         pipette.aspirate(volume=v, location=source[0])
-        if(delay_time_s):
+        if delay_time_s:
             pipette.air_gap(volume=0)
             protocol.delay(seconds=delay_time_s)
-        pipette.dispense(volume=v, location=dest[0].top())
+
+        dispense_vol = v if dispense_all else v-10
+        pipette.dispense(volume=dispense_vol, location=dest[0].top())
         pipette.blow_out(location=dest[0])
-        if touch_tip:
-            pipette.touch_tip(radius=touch_tip[0],
-                              v_offset=touch_tip[1],
-                              speed=TOUCH_SPEED)
 
     # the final transfer
     if mix_before:
@@ -221,18 +338,21 @@ def transfer(vol=0, pipette=None, source=[], dest=[],
                         location=source[0])
         if len(mix_before) == 2:
             pipette.mix(repetitions=mix_before[0],
-                        volume=mix_before[1],
+                        volume=mix_after_vol,
                         location=source[0])
     pipette.aspirate(volume=vol_ar[-1], location=source[0])
-    if(delay_time_s):
+    if delay_time_s:
         pipette.air_gap(volume=0)
         protocol.delay(seconds=delay_time_s)
-    pipette.dispense(volume=vol_ar[-1], location=dest[0])
+
+    dispense_vol = vol_ar[-1] if dispense_all else vol_ar[-1]-10
+    pipette.dispense(volume=dispense_vol, location=dest[0])
+
     if mix_after:
         if len(mix_after) == 1:
             pipette.mix(repetitions=mix_after[0], volume=vol_ar[-1])
         if len(mix_after) == 2:
-            pipette.mix(repetitions=mix_after[0], volume=mix_after[1])
+            pipette.mix(repetitions=mix_after[0], volume=mix_after_vol)
 
     pipette.blow_out(location=dest[0])
     if touch_tip:
@@ -244,14 +364,14 @@ def transfer(vol=0, pipette=None, source=[], dest=[],
 def reagent_low(q_remain=0, q_transfer=0):
     return True if q_remain < q_transfer else False
 
-def add_proteinase_k(num_cols=1, pipette=None, source=None, dest=[]):
+def add_proteinase_k(num_cols=0, pipette=None, source=None, dest=[]):
     for c in range(num_cols):
         transfer(vol=VOL_PK, pipette=pipette,
                  source=source, dest=dest[c],
-                 mix_before=(2, VOL_10), mix_after=(3, VOL_SAMPLE),
+                 mix_before=(2, VOL_10), mix_after=(3, VOL_10),
                  touch_tip=(TOUCH_RADIUS_SM_LG, TOUCH_HEIGHT_SM_LG))
 
-def add_beads(num_cols=1, pipette=None, source=[], dest=[]):
+def add_beads(num_cols=0, pipette=None, source=[], dest=[], protocol=None):
     s = 0
     reagent_vol = source[s]['VOL']
     for c in range(num_cols):
@@ -264,21 +384,23 @@ def add_beads(num_cols=1, pipette=None, source=[], dest=[]):
                  source=source[s]['WELL'], dest=dest[c],
                  mix_before=(5,), mix_after=(2,),
                  touch_tip=(TOUCH_RADIUS_LG_LG, TOUCH_HEIGHT_LG_LG),
-                 delay_time_s=5)
+                 delay_time_s=5, protocol=protocol)
 
         reagent_vol -= vol_transfer
 
-def add_ms2(num_cols=1, pipette=None, source=None, dest=[]):
+def add_ms2(num_cols=0, pipette=None, source=None, dest=[]):
     for c in range(num_cols):
         transfer(vol=VOL_PK, pipette=pipette,
                  source=source, dest=dest[c],
                  mix_before=(2, VOL_10), mix_after=(3, VOL_10),
                  touch_tip=(TOUCH_RADIUS_SM_LG, TOUCH_HEIGHT_SM_LG))
 
-def discard_supernatant(num_cols=1, pipette=None, source=[], dest=[], vol=0):
+def discard_supernatant(num_cols=0, pipette=None, source=[], dest=[]):
     pipette.well_bottom_clearance.aspirate = DEPTH_BOTTOM_LOW
+    pipette.flow_rate.aspirate = ASPIRATE_SPEED
+    pipette.flow_rate.dispense = DISPENSE_SPEED
     for c in range(num_cols):
-        transfer(vol=vol, pipette=pipette,
+        transfer(vol=VOL_WASTE, dispense_all=False, pipette=pipette,
                  source=source[c], dest=dest[0])
     reset_pipette_depth(pipette)
 
@@ -301,15 +423,14 @@ def wash_beads(protocol, source=None, vol=0):
     protocol.pause()
 
     # 4. Place the plate back on the magnetic stand for 2 minutes, or until all the beads have collected.
-    mag_deck.engage(height=MAG_DECK_HEIGHT)
+    mag_deck.engage(height=MAGDECK_ENGAGE_HEIGHT)
     protocol.delay(minutes=2)
 
     # 5. Keeping the plate on the magnet, discard the supernatant from each well.
     # IMPORTANT! Avoid disturbing the beads.
     discard_supernatant(num_cols=num_cols, pipette=p300,
                         source=reaction_plate.columns(),
-                        dest=waste_reservior.columns(),
-                        vol=vol)
+                        dest=waste_reservior.columns())
 
 def wash(num_cols=0, pipette=None, source=None, dest=None, vol=0):
     s = 0
@@ -326,8 +447,8 @@ def wash(num_cols=0, pipette=None, source=None, dest=None, vol=0):
                  touch_tip=(TOUCH_RADIUS_LG_LG, TOUCH_HEIGHT_LG_LG))
         reagent_vol -= vol_transfer
 
-def elute(num_cols=1, pipette=None, source=None, dest=[]):
-    pipette.well_bottom_clearance.dispense = DEPTH_BOTTOM_LOW
+def elute(num_cols=0, pipette=None, source=None, dest=[]):
+    pipette.well_bottom_clearance.aspirate = DEPTH_BOTTOM_LOW
     for c in range(num_cols):
         transfer(vol=VOL_ELUTE, pipette=pipette,
                  source=source['WELL'], dest=dest[c],
@@ -335,7 +456,7 @@ def elute(num_cols=1, pipette=None, source=None, dest=[]):
                  touch_tip=(TOUCH_RADIUS_LG_LG, TOUCH_HEIGHT_LG_LG))
     reset_pipette_depth(pipette)
 
-def make_qPCR_plate(num_cols=1, pipette=None, source=[], dest=[]):
+def make_qPCR_plate(num_cols=0, pipette=None, source=[], dest=[]):
     pipette.well_bottom_clearance.aspirate = DEPTH_BOTTOM_LOW
     for c in range(num_cols):
         transfer(vol=VOL_ELUTE, pipette=pipette,
@@ -346,3 +467,7 @@ def make_qPCR_plate(num_cols=1, pipette=None, source=[], dest=[]):
 def reset_pipette_depth(pipette):
     pipette.well_bottom_clearance.aspirate = DEPTH_BOTTOM_MID
     pipette.well_bottom_clearance.dispense = DEPTH_BOTTOM_MID
+
+def reset_pipette_speed(pipette):
+    pipette.flow_rate.aspirate = DEFAULT_ASPIRATE_SPEED
+    pipette.flow_rate.dispense = DEFAULT_DISPENSE_SPEED
