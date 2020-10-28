@@ -2,7 +2,7 @@
 OT-2 API V2 scripts for Opentrons robot using the [TaqPath COVID-19 Combo Kit](https://www.fda.gov/media/136112/download)
 
 This workflow enables end-to-end RT-qPCR using the OT2 liquid handling robot by OpenTrons. This includes:
-- Executing magnetic beads-based RNA extraction. 
+- Executing magnetic beads-based RNA extraction.
 - Performing qPCR assay preperation protocol in 96-well plate format.
 
 ## General Installation
@@ -20,6 +20,8 @@ This workflow enables end-to-end RT-qPCR using the OT2 liquid handling robot by 
 
 **Volume**: 200&mu;L
 
+**Instrument**: Eppendorf ThermoMixer® C
+
 ## qPCR Assay Preperation
 **Kit**: TaqPath™ COVID-19 Combo Kit
 
@@ -31,4 +33,3 @@ This workflow enables end-to-end RT-qPCR using the OT2 liquid handling robot by 
 
 * **Dany Fu** - [dany-fu](https://github.com/dany-fu)
 * **Rita R. Chen** - [rychen58](https://github.com/rychen58)
-

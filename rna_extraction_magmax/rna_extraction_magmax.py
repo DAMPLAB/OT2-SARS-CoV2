@@ -1,6 +1,7 @@
 # RNA Extraction Protocol
 # Written By Rita Chen 2020-05-21
 # Updated by Dany Fu 2020-05-25
+# Updated by Dany Fu 2020-10-26
 
 # Hardware
 TEMP_DECK = {
@@ -23,7 +24,7 @@ REACTION_PLATE = { #2.4mL per well, 96 wells
 }
 REAGENT_PLATE = {
     'NAME': 'biorad_96_wellplate_200ul_pcr',
-    'SLOT': 2,
+    'SLOT': 5,
     'LABEL': 'Reagent Plate'
 }
 REAGENT_RESERVOIR = { #22mL per well, 12 wells
@@ -47,19 +48,19 @@ FILTER_TIP_20 = [{
 }]
 FILTER_TIP_200 = [{
     'NAME': 'opentrons_96_filtertiprack_200ul',
-    'SLOT': 3,
+    'SLOT': 2,
     'LABEL': 'Filter Tip LG3'
 }, {
     'NAME': 'opentrons_96_filtertiprack_200ul',
-    'SLOT': 6,
+    'SLOT': 3,
     'LABEL': 'Filter Tip LG6'
 }, {
     'NAME': 'opentrons_96_filtertiprack_200ul',
-    'SLOT': 9,
+    'SLOT': 6,
     'LABEL': 'Filter Tip LG9'
 }, {
     'NAME': 'opentrons_96_filtertiprack_200ul',
-    'SLOT': 5,
+    'SLOT': 9,
     'LABEL': 'Filter Tip LG5'
 }]
 
@@ -179,8 +180,7 @@ def run(protocol: protocol_api.ProtocolContext):
     """
     LYSE SAMPLE
     """
-    # 1. Mix and add 5 μL of Proteinase K to each well of reaction plate
-    # that already contains 200 μL of sample
+    # 1. Mix and add 5 μL of Proteinase K to each well of reaction plate that already contains 200 μL of sample.
     add_proteinase_k(num_cols=num_cols, pipette=p20,
                      source=reagent_map[PROTEINASE_K][0]['WELL'],
                      dest=reaction_plate.columns())
@@ -252,9 +252,7 @@ def run(protocol: protocol_api.ProtocolContext):
 
     # 6. Keeping the plate on the magnet, transfer the eluates to a fresh standard
     # (not deep-well) plate, then seal the plate with MicroAmp™ Clear Adhesive Film.
-    # IMPORTANT! To prevent evaporation, seal the plate containing the eluate immediately after the transfers are complete.
-    # Note: Significant bead carry over may adversely impact RT-PCR performance. Place the plate on ice for immediate use\
-    # in real-time RT‑PCR.
+    # Note: Significant bead carry over may adversely impact RT-PCR performance. Leave the output plate on the Temperature Module, and immediately proceed to the qPCR assay preparation protocol.
     make_qPCR_plate(num_cols=num_cols, pipette=p300,
                     source=reaction_plate.columns(),
                     dest=output_plate.columns())

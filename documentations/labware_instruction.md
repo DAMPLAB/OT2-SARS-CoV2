@@ -13,3 +13,5 @@ This document contains the labware  previously used to implement OT2 SARS CoV2 d
 - USA Scientific 96 Deep Well Plate 2.4 mL
 - Agilent 1 Well Reservoir 290 mL
 - USA Scientific 12 Well Reservoir 22 mL
+- Additional Hardware:
+    - Eppendorf ThermoMixer® C

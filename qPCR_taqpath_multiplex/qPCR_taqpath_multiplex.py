@@ -30,9 +30,13 @@ metadata = {'apiLevel': '2.2',
             'author': 'Rita Chen, Dany Fu',
             'description': 'Aliquot RNA eluent and distribute master mix to 96 well plate'}
 
-TEMP_DECK = {
-    'NAME': 'Temperature Module',
+TEMP_DECK_1 = {
+    'NAME': 'Temperature Module 1',
     'SLOT': 7
+}
+TEMP_DECK_2 = {
+    'NAME': 'Temperature Module 2',
+    'SLOT': 4
 }
 QPCR_PLATE = {#200uL per well, 96 wells
     'NAME': 'biorad_96_wellplate_200ul_pcr',
@@ -43,9 +47,8 @@ RNA_PLATE = { #200uL per well, 96 wells
     'LABEL': 'RNA Plate',
     'SLOT': 8
 }
-REAGENT_PLATE = {
+REAGENT_PLATE = { #200uL per well, 96 wells
     'NAME': 'biorad_96_wellplate_200ul_pcr',
-    'SLOT': 4,
     'LABEL': 'Reagent Plate'
 }
 P10_MULTI = {
@@ -72,14 +75,14 @@ TOUCH_RADIUS_SM_SM = 1.20
 TOUCH_HEIGHT_SM_SM = -2.0
 
 def run(protocol: protocol_api.ProtocolContext):
-    temp_deck = protocol.load_module(TEMP_DECK['NAME'], location=TEMP_DECK['SLOT'])
-    qPCR_plate = temp_deck.load_labware(QPCR_PLATE['NAME'],
+    temp_deck_1 = protocol.load_module(TEMP_DECK_1['NAME'], location=TEMP_DECK_1['SLOT'])
+    temp_deck_2 = protocol.load_module(TEMP_DECK_2['NAME'], location=TEMP_DECK_2['SLOT'])
+    qPCR_plate = temp_deck_1.load_labware(QPCR_PLATE['NAME'],
                                        label=QPCR_PLATE['LABEL'])
     rna_plate = protocol.load_labware(RNA_PLATE['NAME'],
                                       location=RNA_PLATE['SLOT'],
                                       label=RNA_PLATE['LABEL'])
-    reagent_plate = protocol.load_labware(REAGENT_PLATE['NAME'],
-                                          location=REAGENT_PLATE['SLOT'],
+    reagent_plate = temp_deck_2.load_labware(REAGENT_PLATE['NAME'],
                                           label=REAGENT_PLATE['LABEL'])
     mastermix = reagent_plate.columns()[0]
     tip_20 = [protocol.load_labware(i['NAME'], location=i['SLOT'], label=i['LABEL'])
@@ -97,13 +100,14 @@ def run(protocol: protocol_api.ProtocolContext):
     add_master_mix(num_cols=num_cols, pipette=p20,
                    source=mastermix, dest=qPCR_plate.columns())
 
+# Aliquot 10 µL of the purified RNA extract to an empty Bio-Rad 96 well plate at the beginning of the qPCR assay preparation protocol.
 def aliquot_eluent(num_cols=1, pipette=None, source=None, dest=[]):
     for c in range(num_cols):
         transfer(vol=VOL_RNA, pipette=pipette,
                  source=source[c], dest=dest[c])
-
+# Add pre-prepared TaqPath™ master mixes (Reagents Plate).
 def add_master_mix(num_cols=1, pipette=None, source=None, dest=[]):
-    # Transfer 15ul of reagent mix (reagent plate) to the pre-prepared reaction plate
+    # Transfer 15ul of reagent mix (reagent plate) to the aliquoted reaction plate (aliquot_eluent)
     for c in range(num_cols):
         transfer(vol=VOL_MASTER_MIX, pipette=pipette,
                  source=source, dest=dest[c],
