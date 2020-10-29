@@ -85,7 +85,7 @@ Follow the instruction provided in the [TaqPath™ COVID-19 Combo Kit](https://w
 1. Open up OT2 APP, and upload the *qPCR_taqpath_multiplex.py* under the Protocol the folder **qPCR_taqpath_multiplex**. [2 Minutes / Variable]
 2. Once the protocol is uploaded, following the calibration instructions provided by the OT2 APP by placing the Temperature Modules 1 and a Bio-Rad 96 well plate containing purified RNA extraction form the previous workflow (Reaction Plate), place the Temperature Modules 2 and a Bio-Rad 96 well plate containing TaqPath™ master mixes (Reagents Plate), and one Opentrons 200 µL Filter Tips Racks onto the deck of the liquid handler (Figure 2A and 2B). [2 Minutes / Variable]    
   **NOTE:** Pipette replacement might be necessary, please follow the instructions provided by OT2 App.
-3. Once the calibration process is completed, proceed to running the protocol. [5 Minutes / Variable]    
+3. Once the calibration process is completed, proceed to running the protocol. [12 Minutes / Variable]    
   **NOTE:** Always allow the robotic liquid handler to complete the execution of a script before trying to access the deck space.
 4. The robotic liquid handler would automatically pause when the qPCR assay preparation protocol is completed. Seal and store the RNA Plate from the previous protocol.
 

@@ -25,19 +25,17 @@
 
 import math
 from opentrons import protocol_api
-metadata = {'apiLevel': '2.2',
+metadata = {'apiLevel': '2.7',
             'protocolName': 'qPCR Prep (MagMAX)',
             'author': 'Rita Chen, Dany Fu',
             'description': 'Aliquot RNA eluent and distribute master mix to 96 well plate'}
 
 TEMP_DECK_1 = {
-    'NAME': 'Temperature Module',
-    'LABEL': 'Temperature Module 1',
+    'NAME': 'Temperature Module GEN2',
     'SLOT': 7
 }
 TEMP_DECK_2 = {
     'NAME': 'Temperature Module',
-    'LABEL': 'Temperature Module 2',
     'SLOT': 4
 }
 QPCR_PLATE = {#200uL per well, 96 wells
@@ -77,8 +75,8 @@ TOUCH_RADIUS_SM_SM = 1.20
 TOUCH_HEIGHT_SM_SM = -2.0
 
 def run(protocol: protocol_api.ProtocolContext):
-    temp_deck_1 = protocol.load_module(TEMP_DECK_1['NAME'], location=TEMP_DECK_1['SLOT'], label=TEMP_DECK_1['LABEL'])
-    temp_deck_2 = protocol.load_module(TEMP_DECK_2['NAME'], location=TEMP_DECK_2['SLOT'], label=TEMP_DECK_2['LABEL'])
+    temp_deck_1 = protocol.load_module(TEMP_DECK_1['NAME'], location=TEMP_DECK_1['SLOT'])
+    temp_deck_2 = protocol.load_module(TEMP_DECK_2['NAME'], location=TEMP_DECK_2['SLOT'])
     qPCR_plate = temp_deck_1.load_labware(QPCR_PLATE['NAME'],
                                        label=QPCR_PLATE['LABEL'])
     rna_plate = protocol.load_labware(RNA_PLATE['NAME'],
@@ -96,7 +94,9 @@ def run(protocol: protocol_api.ProtocolContext):
 
     num_cols = len(qPCR_plate.columns())
 
-    temp_deck.set_temperature(celsius=TEMP)
+    temp_deck_1.set_temperature(celsius=TEMP)
+    temp_deck_2.set_temperature(celsius=TEMP)
+    
     aliquot_eluent(num_cols=num_cols, pipette=p20,
                    source=rna_plate.columns(), dest=qPCR_plate.columns())
     add_master_mix(num_cols=num_cols, pipette=p20,
