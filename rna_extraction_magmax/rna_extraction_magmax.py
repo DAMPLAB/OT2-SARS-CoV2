@@ -263,7 +263,7 @@ def make_reagent_map(reagent_plate, reagent_reservior):
         PROTEINASE_K: [ # 5uL per sample, 528uL in the well
             {'VOL': 528, 'WELL': reagent_plate.columns()[0]}
         ],
-        MS2: [ # 5uL per sample, 52uL in the well
+        MS2: [ # 5uL per sample, 528uL in the well
             {'VOL': 528, 'WELL': reagent_plate.columns()[1]}
         ],
         ELUTION: [ # 50uL per sample, 5.28mL in the well
