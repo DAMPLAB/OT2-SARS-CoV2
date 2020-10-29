@@ -71,8 +71,8 @@ VOL_RNA = 10
 VOL_MASTER_MIX = 15 # Reaction volume
 TEMP = 4
 TOUCH_SPEED = 20.0
-TOUCH_RADIUS_SM_SM = 1.20
-TOUCH_HEIGHT_SM_SM = -2.0
+TOUCH_RADIUS_SM_SM = 1.0
+TOUCH_HEIGHT_SM_SM = -1.5
 
 def run(protocol: protocol_api.ProtocolContext):
     temp_deck_1 = protocol.load_module(TEMP_DECK_1['NAME'], location=TEMP_DECK_1['SLOT'])
@@ -96,7 +96,7 @@ def run(protocol: protocol_api.ProtocolContext):
 
     temp_deck_1.set_temperature(celsius=TEMP)
     temp_deck_2.set_temperature(celsius=TEMP)
-    
+
     aliquot_eluent(num_cols=num_cols, pipette=p20,
                    source=rna_plate.columns(), dest=qPCR_plate.columns())
     add_master_mix(num_cols=num_cols, pipette=p20,
