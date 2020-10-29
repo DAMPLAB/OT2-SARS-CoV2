@@ -296,9 +296,11 @@ def make_reagent_map(reagent_plate, reagent_reservior):
 def transfer(vol=0, dispense_all=True, pipette=None, source=[], dest=[],
              mix_before=None, mix_after=None,
              touch_tip=None, delay_time_s=None, protocol=None):
+
+    # must pick up tip first before proper working volume is calculated
+    pipette.pick_up_tip()
+
     max_vol = pipette.hw_pipette['working_volume']
-    if max_vol == 300:
-        max_vol = 200 # remove this crap
     if mix_before and len(mix_before) == 2:
         mix_before_vol = max_vol if mix_before[1] > max_vol else mix_before[1]
     if mix_after and len(mix_after) == 2:
@@ -306,7 +308,6 @@ def transfer(vol=0, dispense_all=True, pipette=None, source=[], dest=[],
 
     n = math.ceil(vol / max_vol)
     vol_ar = [vol // n + (1 if x < vol % n else 0) for x in range(n)]
-    pipette.pick_up_tip()
 
     # dispense to the top of the well so we can reuse the tips
     for v in vol_ar[:-1]:

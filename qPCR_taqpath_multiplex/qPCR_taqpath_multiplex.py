@@ -120,12 +120,21 @@ def add_master_mix(num_cols=1, pipette=None, source=None, dest=[]):
 # exceeds the pipette's max volume this function will
 # prioritize tip reuse by pipetting to the top of the
 # wells until the last dispensation
-def transfer(vol=0, pipette=None, source=[], dest=[],
+def transfer(vol=0, dispense_all=True, pipette=None, source=[], dest=[],
              mix_before=None, mix_after=None,
-             touch_tip=None, delay_time_s=None):
-    n = math.ceil(vol / pipette.hw_pipette['working_volume'])
-    vol_ar = [vol // n + (1 if x < vol % n else 0) for x in range(n)]
+             touch_tip=None, delay_time_s=None, protocol=None):
+
+    # must pick up tip first before proper working volume is calculated
     pipette.pick_up_tip()
+
+    max_vol = pipette.hw_pipette['working_volume']
+    if mix_before and len(mix_before) == 2:
+        mix_before_vol = max_vol if mix_before[1] > max_vol else mix_before[1]
+    if mix_after and len(mix_after) == 2:
+        mix_after_vol = max_vol if mix_after[1] > max_vol else mix_after[1]
+
+    n = math.ceil(vol / max_vol)
+    vol_ar = [vol // n + (1 if x < vol % n else 0) for x in range(n)]
 
     # dispense to the top of the well so we can reuse the tips
     for v in vol_ar[:-1]:
@@ -136,18 +145,16 @@ def transfer(vol=0, pipette=None, source=[], dest=[],
                             location=source[0])
             if len(mix_before) == 2:
                 pipette.mix(repetitions=mix_before[0],
-                            volume=mix_before[1],
+                            volume=mix_before_vol,
                             location=source[0])
         pipette.aspirate(volume=v, location=source[0])
-        if(delay_time_s):
+        if delay_time_s:
             pipette.air_gap(volume=0)
             protocol.delay(seconds=delay_time_s)
-        pipette.dispense(volume=v, location=dest[0].top())
+
+        dispense_vol = v if dispense_all else v-10
+        pipette.dispense(volume=dispense_vol, location=dest[0].top())
         pipette.blow_out(location=dest[0])
-        if touch_tip:
-            pipette.touch_tip(radius=touch_tip[0],
-                              v_offset=touch_tip[1],
-                              speed=TOUCH_SPEED)
 
     # the final transfer
     if mix_before:
@@ -157,18 +164,21 @@ def transfer(vol=0, pipette=None, source=[], dest=[],
                         location=source[0])
         if len(mix_before) == 2:
             pipette.mix(repetitions=mix_before[0],
-                        volume=mix_before[1],
+                        volume=mix_after_vol,
                         location=source[0])
     pipette.aspirate(volume=vol_ar[-1], location=source[0])
-    if(delay_time_s):
+    if delay_time_s:
         pipette.air_gap(volume=0)
         protocol.delay(seconds=delay_time_s)
-    pipette.dispense(volume=vol_ar[-1], location=dest[0])
+
+    dispense_vol = vol_ar[-1] if dispense_all else vol_ar[-1]-10
+    pipette.dispense(volume=dispense_vol, location=dest[0])
+
     if mix_after:
         if len(mix_after) == 1:
             pipette.mix(repetitions=mix_after[0], volume=vol_ar[-1])
         if len(mix_after) == 2:
-            pipette.mix(repetitions=mix_after[0], volume=mix_after[1])
+            pipette.mix(repetitions=mix_after[0], volume=mix_after_vol)
 
     pipette.blow_out(location=dest[0])
     if touch_tip:

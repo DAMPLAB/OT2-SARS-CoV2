@@ -5,29 +5,29 @@ This workflow enables end-to-end RT-qPCR using the OT2 liquid handling robot by 
 - Executing magnetic beads-based RNA extraction.
 - Performing qPCR assay preperation protocol in 96-well plate format.
 
-## General Installation
+Each folder contains the python script to run the protocol fully in the OT2 desktop application, as well as a Jupyter Notebook that allows the user to test each liquid transfer function individually.
 
-1. Confirm that you have [Python 3](https://www.python.org/downloads/) installed.
+Full setup instructions can be found [here](https://github.com/DAMPLAB/OT2-SARS-CoV2/blob/master/instructions.md)
 
-2. Confirm that you have [Jupyter Notebook](https://jupyter.org/) installed.
+## Software Requirements
 
-3. Download [OT2 APP](https://opentrons.com/ot-app) from Opentrons' website.
+1. [Python 3](https://www.python.org/downloads/)
 
-4. Clone the [GitHub repository](https://github.com/DAMPLAB/OT2-SARS-CoV2) to a local computer.
+2. [Jupyter Notebook](https://jupyter.org/)
+
+3. [OT2 APP](https://opentrons.com/ot-app)
+
+4. Clone this [repository](https://github.com/DAMPLAB/OT2-SARS-CoV2) to a local computer.
 
 ## Magnetic Beads-based RNA Extraction
 **Kit**: MagMAX™ Viral/Pathogen II Nucleic Acid Isolation Kit    
 
-**Volume**: 200&mu;L
+**Sample Volume**: 200&mu;L
 
-**Instrument**: Eppendorf ThermoMixer® C
-
-## qPCR Assay Preperation
+## qPCR Preperation
 **Kit**: TaqPath™ COVID-19 Combo Kit
 
-**Volume**: 200&mu;L
-
-**Instrument**: QuantStudio™ 7 Flex Real-Time PCR System
+**Sample Volume**: 200&mu;L
 
 ## Authors
 

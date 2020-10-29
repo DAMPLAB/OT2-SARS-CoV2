@@ -25,14 +25,7 @@ Below we list the materials previously used to implement OT2 SARS CoV2 detection
 - [OpenTrons P300 Multi-Channel Generation 2 Electronic Pipette](https://opentrons.com/pipettes)
 - [OpenTrons Temperature Module Generation 2](https://opentrons.com/modules#temperature)
 - [OpenTrons Magnetic Module Generation 1](https://opentrons.com/modules#magnetic)
-- Opentrons 20 µL Filter Tips
-- Opentrons 200 µL Filter Tips
-- Bio-Rad 96 Well Plate 200 µL PCR
-- USA Scientific 96 Deep Well Plate 2.4 mL
-- Agilent 1 Well Reservoir 290 mL
-- USA Scientific 12 Well Reservoir 22 mL
-- Additional Hardware:
-    - Eppendorf ThermoMixer® C
+- Eppendorf ThermoMixer® C
 
 ### Consumables & Reagents:
 - [OpenTrons 20 µL Filter Tips](https://shop.opentrons.com/collections/opentrons-tips/products/opentrons-20ul-filter-tips)
@@ -69,10 +62,10 @@ Follow the instruction provided in the [TaqPath™ COVID-19 Combo Kit](https://w
 ### Execute RNA Extraction Protocol on OT-2
 1. Open up OT2 APP, and upload the *rna_extraction_magmax.py* under the Protocol the folder **rna_extraction_magmax**. [8 Minutes / Variable]
 2. Once the protocol is uploaded, following the calibration instructions provided by the OT2 APP by placing the Temperature Module and an empty Bio-Rad 96 well plate (Output Plate), the Magnetic Module and a USA Scientific 96 deep well plate containing the samples (Reaction Plate), the Reagents Plate, the Reagent Trough, the Waste Reservoir, two Opentrons 20 µL Filter Tips, and four Opentrons 200 µL Filter Tips Racks onto the deck of the liquid handler. (Figure 1A and 1B). [5 Minutes / Variable]     
-  **NOTE:** Pipette replacement might be necessary, please follow the instructions provided by OT2 App.
+  **NOTE:** 200 µL tip reload will be necessary, protocol will pause in the proper places and must be resumed manually.       
 3. Once the calibration process is completed, proceed to running the protocol. [2 Hours / Variable]     
   **NOTE:** Always allow the robotic liquid handler to complete the execution of a script before trying to access the deck space.    
-  **NOTE:** All shaking and incubation steps are performed with benchtop Eppendorf ThermoMixer® C.
+  **NOTE:** All shaking and incubation steps are performed with benchtop Eppendorf ThermoMixer® C.  Protocol will pause in the proper places and must be resumed manually.    
 4. The robotic liquid handler would automatically pause when the RNA extraction protocol is completed. Leave the output plate on the OT2 robot (Deck #8), and immediately proceed to the qPCR assay preparation protocol.    
   **NOTE:** Significant bead carry over may adversely impact RT-PCR performance.
 
