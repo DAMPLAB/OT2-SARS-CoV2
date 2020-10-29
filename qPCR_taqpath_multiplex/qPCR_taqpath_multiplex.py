@@ -31,16 +31,18 @@ metadata = {'apiLevel': '2.2',
             'description': 'Aliquot RNA eluent and distribute master mix to 96 well plate'}
 
 TEMP_DECK_1 = {
-    'NAME': 'Temperature Module 1',
+    'NAME': 'Temperature Module',
+    'LABEL': 'Temperature Module 1',
     'SLOT': 7
 }
 TEMP_DECK_2 = {
-    'NAME': 'Temperature Module 2',
+    'NAME': 'Temperature Module',
+    'LABEL': 'Temperature Module 2',
     'SLOT': 4
 }
 QPCR_PLATE = {#200uL per well, 96 wells
     'NAME': 'biorad_96_wellplate_200ul_pcr',
-    'LABEL': 'Output Plate', #no slot, sits on temp deck
+    'LABEL': 'Output Plate' #no slot, sits on temp deck
 }
 RNA_PLATE = { #200uL per well, 96 wells
     'NAME': 'biorad_96_wellplate_200ul_pcr',
@@ -75,8 +77,8 @@ TOUCH_RADIUS_SM_SM = 1.20
 TOUCH_HEIGHT_SM_SM = -2.0
 
 def run(protocol: protocol_api.ProtocolContext):
-    temp_deck_1 = protocol.load_module(TEMP_DECK_1['NAME'], location=TEMP_DECK_1['SLOT'])
-    temp_deck_2 = protocol.load_module(TEMP_DECK_2['NAME'], location=TEMP_DECK_2['SLOT'])
+    temp_deck_1 = protocol.load_module(TEMP_DECK_1['NAME'], location=TEMP_DECK_1['SLOT'], label=TEMP_DECK_1['LABEL'])
+    temp_deck_2 = protocol.load_module(TEMP_DECK_2['NAME'], location=TEMP_DECK_2['SLOT'], label=TEMP_DECK_2['LABEL'])
     qPCR_plate = temp_deck_1.load_labware(QPCR_PLATE['NAME'],
                                        label=QPCR_PLATE['LABEL'])
     rna_plate = protocol.load_labware(RNA_PLATE['NAME'],
