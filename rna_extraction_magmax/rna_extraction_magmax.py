@@ -237,6 +237,7 @@ def run(protocol: protocol_api.ProtocolContext):
     """
     temp_deck.set_temperature(celsius=TEMP)
     # 1. Add 50 μL of Elution Solution to each sample, then seal the plate
+    mag_deck.disengage()
     elute(num_cols=num_cols, pipette=p300,
           source=reagent_map[ELUTION][0],
           dest=reaction_plate.columns())
