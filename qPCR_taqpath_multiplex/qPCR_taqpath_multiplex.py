@@ -72,7 +72,7 @@ VOL_MASTER_MIX = 15 # Reaction volume
 TEMP = 4
 TOUCH_SPEED = 20.0
 TOUCH_RADIUS_SM_SM = 1.0
-TOUCH_HEIGHT_SM_SM = -1.5
+TOUCH_HEIGHT_SM_SM = -1.0
 
 def run(protocol: protocol_api.ProtocolContext):
     temp_deck_1 = protocol.load_module(TEMP_DECK_1['NAME'], location=TEMP_DECK_1['SLOT'])
